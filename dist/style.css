@@ -287,3 +287,49 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 @media(max-width:1100px){.student-pack-feature{grid-template-columns:1fr minmax(240px,.85fr)}.student-pack-actions{grid-column:1/-1}.student-pack-actions .download-group{max-width:none}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.student-pack-feature{grid-template-columns:1fr}.student-pack-intro{grid-template-columns:76px minmax(0,1fr)}.student-pack-intro>img{width:76px;height:84px}.student-pack-preview figure{grid-template-rows:68px auto}.student-pack-preview img{height:68px}.student-pack-library-grid{grid-template-columns:1fr}.visual-sequence{flex-wrap:wrap}.visual-sequence b{flex:1 0 100%}}
 @media(max-width:420px){.student-pack-preview{gap:4px}.student-pack-preview figcaption{font-size:11px}.student-pack-library-grid article{grid-template-columns:72px minmax(0,1fr)}.student-pack-library-art{width:72px;height:82px}}
+
+/* A shared picture-book thread ties the calendar, planning, records and downloads together. */
+.story-ribbon{--story-accent:#7145a3;display:grid;grid-template-columns:78px minmax(190px,1fr) auto auto;align-items:center;gap:15px;margin:0 0 18px;padding:12px 15px;border:1px solid #e5d9ef;border-left:7px solid var(--story-accent);border-radius:16px;background:linear-gradient(105deg,#f7effb 0%,#fffaf0 100%);box-shadow:0 4px 14px #3d315112}
+.story-ribbon-art{display:grid;place-items:center;width:74px;height:68px;overflow:hidden;border-radius:12px;background:radial-gradient(circle at 45% 40%,#fff 0%,#f5eaf9 70%)}
+.story-ribbon-art img{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 3px #35244422)}
+.story-ribbon-title{display:grid;gap:3px;min-width:0}.story-ribbon-title span{color:#79519b;font-size:11px;font-weight:900;letter-spacing:.085em}.story-ribbon-title b{overflow:hidden;color:#303b56;font-size:18px;line-height:1.2;text-overflow:ellipsis}.story-ribbon-title small{color:#6d788b;font-size:12px;font-weight:700}
+.story-ribbon-rhythm{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;background:#ffffffc9;color:#5d4a78}.story-ribbon-rhythm span{font-size:11px;font-weight:900;letter-spacing:.06em}.story-ribbon-rhythm i{color:#d69834;font-size:17px;font-style:normal;font-weight:900}
+.story-ribbon-link{padding:10px 13px;border:1px solid #d9c9e8;border-radius:10px;background:white;color:#644286;font-size:13px;font-weight:850;white-space:nowrap;cursor:pointer}.story-ribbon-link:hover{background:#f4eafb;border-color:#b99ccf}
+
+/* A little original book art makes every week in the calendar instantly recognizable. */
+.weekly-story-card .story-main{position:relative;min-height:145px;padding-right:138px}
+.weekly-story-card .story-main>img{position:absolute;right:0;top:50%;width:132px;height:132px;object-fit:contain;transform:translateY(-50%);filter:drop-shadow(0 7px 5px #25163138)}
+.weekly-story-card .story-main h3,.weekly-story-card .story-main p{position:relative;z-index:1}
+.calendar-activity-link{display:block;margin-top:5px;padding:8px 9px;border:1px solid #d8c8e8;border-radius:9px;background:#f3eafb;color:#604381;text-align:center;text-decoration:none;font-size:12px;font-weight:850}
+.calendar-activity-link:hover{background:#e8d9f4}
+
+/* The illustrated activity menu makes the sample activities real, separate downloads. */
+.student-pack-feature .activity-download-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;width:100%;margin-top:2px}
+.activity-download{--activity:#744ba1;--activity-bg:#f5eefb;display:grid;grid-template-rows:104px auto 1fr auto;gap:8px;min-width:0;padding:10px;border:1px solid color-mix(in srgb,var(--activity) 24%,white);border-top:4px solid var(--activity);border-radius:13px;background:linear-gradient(145deg,var(--activity-bg),#fff 82%);box-shadow:0 3px 10px #2e38510d}
+.activity-download.math{--activity:#3576b3;--activity-bg:#edf5fd}.activity-download.drawing{--activity:#bd7330;--activity-bg:#fff5e7}.activity-download.retell{--activity:#218678;--activity-bg:#edf8f4}
+.activity-art{display:grid;place-items:center;overflow:hidden;border-radius:9px;background:radial-gradient(circle at 48% 45%,#fff 0%,var(--activity-bg) 75%)}.activity-art img{width:100%;height:104px;object-fit:contain;filter:drop-shadow(0 3px 3px #2d324024)}
+.activity-download>div:nth-child(2){display:grid;align-content:start;gap:3px;min-height:44px}.activity-download>div:nth-child(2) b{color:var(--activity);font-size:14px;line-height:1.25}.activity-download>div:nth-child(2) span{color:#59677c;font-size:12px;line-height:1.35}
+.activity-download .download-group{width:100%;min-width:0}.activity-download .download{min-height:42px;padding:9px 10px;border-left:4px solid var(--activity);font-size:12px}.activity-download .download span:last-child{font-size:10px}.activity-download .pdf-open{padding:3px 7px 0;font-size:11px}
+.student-pack-actions{display:grid;gap:7px;align-content:center}.student-pack-actions .download-group{min-width:0}.student-pack-actions .download{font-size:14px}
+.student-pack-preview figure{transition:transform .18s ease,box-shadow .18s ease}.student-pack-preview figure:hover{transform:translateY(-2px);box-shadow:0 5px 13px #553c6415}
+:root[data-theme=dark] .story-ribbon{background:linear-gradient(105deg,#30283a,#2c303b);border-color:#544762}
+:root[data-theme=dark] .story-ribbon-title b,:root[data-theme=dark] .activity-download>div:nth-child(2) span{color:var(--ink)}
+:root[data-theme=dark] .story-ribbon-title small{color:var(--muted)}
+:root[data-theme=dark] .story-ribbon-rhythm,:root[data-theme=dark] .story-ribbon-link{background:#303544;color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .activity-download{background:linear-gradient(145deg,#30303d,#292e3b 82%);border-color:#4b4659}
+:root[data-theme=dark] .activity-download.math{background:linear-gradient(145deg,#28384b,#292e3b 82%)}
+:root[data-theme=dark] .activity-download.drawing{background:linear-gradient(145deg,#403527,#292e3b 82%)}
+:root[data-theme=dark] .activity-download.retell{background:linear-gradient(145deg,#263c3a,#292e3b 82%)}
+:root[data-theme=dark] .activity-art{background:radial-gradient(circle at 48% 45%,#434051 0%,#30303d 75%)}
+:root[data-theme=dark] .calendar-activity-link{background:#382f47;color:#eadbfa;border-color:#5b4b6b}
+@media(max-width:1100px){.story-ribbon{grid-template-columns:72px minmax(180px,1fr) auto}.story-ribbon-rhythm{display:none}.student-pack-feature .activity-download-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.story-ribbon{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:10px}.story-ribbon-art{width:54px;height:56px}.story-ribbon-art img{width:56px;height:56px}.story-ribbon-title span{font-size:9px}.story-ribbon-title b{font-size:15px}.story-ribbon-title small{font-size:11px}.story-ribbon-link{grid-column:1/-1;width:100%}.weekly-story-card .story-main{min-height:0;padding-right:78px}.weekly-story-card .story-main>img{top:0;right:0;width:76px;height:76px;transform:none}.student-pack-feature .activity-download-grid{grid-template-columns:1fr}.activity-download{grid-template-columns:86px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:8px}.activity-art{grid-column:1;grid-row:1/3;height:90px}.activity-art img{height:88px}.activity-download>div:nth-child(2){grid-column:2;grid-row:1;min-height:0}.activity-download .download-group{grid-column:2;grid-row:2}.activity-download .pdf-open{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.student-pack-preview figure{transition:none}}
+
+/* Keep the practice block useful without making it look like an optional badge. */
+.workspace-finish{border:1px solid var(--line);border-left:4px solid #c99536;background:var(--surface);padding:9px 12px}
+.workspace-finish>span{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#fff2d6}
+.workspace-finish p b{color:#49566b}
+:root[data-theme=dark] .workspace-finish{background:var(--surface);border-color:var(--line);border-left-color:#d9ad55}
+:root[data-theme=dark] .workspace-finish>span{background:#51452c}
+:root[data-theme=dark] .workspace-finish p b{color:var(--ink)}
