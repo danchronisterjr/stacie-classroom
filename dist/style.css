@@ -218,3 +218,33 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .book-caption{font-size:10px}
 :root[data-theme=dark] .workspace-panel-heading p,:root[data-theme=dark] .workspace-day-head small,:root[data-theme=dark] .workspace-note,:root[data-theme=dark] .workspace-bottom p,:root[data-theme=dark] .workspace-footnote,:root[data-theme=dark] .workspace-bridge span,:root[data-theme=dark] .workspace-checklist p,:root[data-theme=dark] .workspace-materials p,:root[data-theme=dark] .workspace-grade-row,:root[data-theme=dark] .workspace-finish p,:root[data-theme=dark] .read-rhythm span,:root[data-theme=dark] .question-prompt p{color:var(--muted)}
 :root[data-theme=dark] .planning-toolbar label{color:var(--ink)}
+
+/* Make the book-specific student materials the first, clearest download. */
+.student-pack-feature{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 24px;margin:18px 0 24px;border:2px solid #f2bf45;border-left:9px solid #f2bf45;border-radius:18px;background:linear-gradient(105deg,#fff7dc,#fff 72%);box-shadow:0 8px 24px #6f542014}
+.student-pack-feature>div:first-child{min-width:0}
+.student-pack-feature h3{margin:3px 0 2px;font-size:22px}
+.student-pack-feature p{margin:0;color:var(--muted);font-size:16px}
+.student-pack-kicker{color:#81500a;font-size:13px;font-weight:800;letter-spacing:.09em}
+.student-pack-feature .download-group{width:min(100%,330px);flex:0 0 330px}
+.student-pack-feature .download{background:#ffe59a;border:2px solid #d89818;color:#402900;font-size:17px;font-weight:800;padding:15px 16px;min-height:58px;border-radius:12px}
+.student-pack-feature .pdf-open{font-size:14px}
+.student-pack-library{margin:0 0 30px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface,#fff)}
+.student-pack-library-heading{margin-bottom:16px}
+.student-pack-library-heading h2{margin:4px 0;font-size:25px}
+.student-pack-library-heading p{margin:0;color:var(--muted);font-size:16px}
+.student-pack-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.student-pack-library-grid article{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);min-width:0}
+.student-pack-library-grid article>div:first-child{display:grid;gap:3px;margin-bottom:8px}
+.student-pack-library-grid article>div:first-child b{color:var(--read)}
+.student-pack-library-grid article>div:first-child span{font-weight:700;line-height:1.3}
+.student-pack-library-grid .download{font-size:14px;font-weight:700}
+.calendar-pack-link{display:block;margin-top:auto;padding:9px 8px;border-radius:9px;background:#fff0bd;color:#593c09;text-decoration:none;text-align:center;font-size:12px;line-height:1.3;font-weight:800}
+.calendar-pack-link:hover{background:#ffe18b}
+:root[data-theme=dark] .student-pack-feature{background:linear-gradient(105deg,#3d3424,#252a35 78%);border-color:#a87919}
+:root[data-theme=dark] .student-pack-kicker{color:#f6d486}
+:root[data-theme=dark] .student-pack-feature .download{background:#624b1f;border-color:#d5a53d;color:#fff3ca}
+:root[data-theme=dark] .student-pack-library{background:var(--surface);border-color:var(--line)}
+:root[data-theme=dark] .student-pack-library-grid article{background:var(--surface2);border-color:var(--line)}
+:root[data-theme=dark] .calendar-pack-link{background:#59451f;color:#ffedbd}
+@media(max-width:850px){.student-pack-feature{align-items:stretch;flex-direction:column;gap:12px}.student-pack-feature .download-group{width:100%;flex:auto}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.student-pack-library-grid{grid-template-columns:1fr}.student-pack-feature{padding:17px}}
