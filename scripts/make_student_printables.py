@@ -7,12 +7,15 @@ from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.lib.utils import ImageReader
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 DATA=(ROOT/'dist/data.js').read_text()
 WEEKS=json.JSONDecoder().raw_decode(DATA.split('const WEEKS=',1)[1])[0]
 LESSONS=json.JSONDecoder().raw_decode(DATA.split('const LESSONS=',1)[1])[0]
 OUT=ROOT/'dist/resources'
+ART_RAW=ROOT/'scripts/art/raw'
+ART_CROPS=ROOT/'scripts/art/crops'
 W,H=letter
 
 PUR=HexColor('#7145A3'); LAV=HexColor('#F1E9F8'); TEAL=HexColor('#188579'); MINT=HexColor('#E7F5F1')
@@ -76,90 +79,26 @@ def draw_star(c,x,y,r):
  path=c.beginPath(); path.moveTo(*pts[0])
  for pt in pts[1:]:path.lineTo(*pt)
  path.close(); c.drawPath(path,fill=1,stroke=0)
-def icon(c,kind,cx,cy,size):
- # Friendly, original vector symbols: generic story clues, not book illustrations.
- scale=size/100; c.saveState(); c.translate(cx-size/2,cy-size/2); c.scale(scale,scale)
- bg={'witch':LAV,'cat':HexColor('#EEF1F5'),'dog':PALE,'fox':HexColor('#FFF0DE'),'bird':HexColor('#FFF1C9'),'frog':MINT,'dragon':PINK,'broom':PALE,'hat':LAV,'bow':PINK,'wand':HexColor('#E8F1F9'),'book':HexColor('#E8F1F9'),'place':MINT,'question':PALE,'first':LAV,'next':MINT,'last':PINK,'problem':PINK,'helper':MINT,'result':PALE,'star':HexColor('#FFF1C9'),'pumpkin':HexColor('#FFF0DE'),'bowl':PINK,'leaf':MINT,'wind':HexColor('#E8F1F9'),'tree':MINT,'home':PALE,'flower':PINK,'sun':PALE,'apple':PINK,'snow':HexColor('#E8F1F9'),'penguin':HexColor('#E8F1F9'),'child':LAV,'coat':PINK,'boots':HexColor('#FFF0DE'),'footprints':HexColor('#E8F1F9'),'ghost':white,'vampire':LAV,'mummy':HexColor('#F5F1E9'),'bat':HexColor('#E8F1F9')}
- c.setFillColor(bg.get(kind,PALE)); c.setStrokeColor(HexColor('#D8E1EB')); c.setLineWidth(2); c.circle(50,50,47,fill=1,stroke=1)
- def face(color):
-  c.setFillColor(color); c.circle(50,50,31,fill=1,stroke=0); c.setFillColor(INK); c.circle(40,55,3,fill=1,stroke=0); c.circle(60,55,3,fill=1,stroke=0); c.setStrokeColor(INK); c.setLineWidth(2); c.arc(39,34,62,51,200,140)
- if kind in ('witch','child','vampire'):
-  if kind=='vampire':
-   c.setFillColor(PUR); path=c.beginPath(); path.moveTo(20,55); path.lineTo(32,12); path.lineTo(50,29); path.lineTo(68,12); path.lineTo(80,55); path.close(); c.drawPath(path,fill=1,stroke=0)
-  face(HexColor('#F0B690'))
-  if kind=='witch':
-   c.setFillColor(PUR); path=c.beginPath(); path.moveTo(15,70); path.lineTo(50,98); path.lineTo(82,70); path.close(); c.drawPath(path,fill=1,stroke=0); c.setFillColor(GOLD); c.ellipse(19,66,81,73,fill=1,stroke=0)
-  elif kind=='child':
-   c.setFillColor(HexColor('#6D4A39')); c.wedge(19,57,81,91,0,180,fill=1,stroke=0)
-  else:
-   c.setFillColor(white); path=c.beginPath(); path.moveTo(42,37); path.lineTo(47,47); path.lineTo(50,37); path.lineTo(54,47); path.lineTo(59,37); path.close(); c.drawPath(path,fill=1,stroke=0)
- elif kind in ('cat','dog','fox','frog','ghost'):
-  color={'cat':HexColor('#717F91'),'dog':HexColor('#C87943'),'fox':CORAL,'frog':TEAL,'ghost':white}[kind]
-  c.setFillColor(color)
-  if kind in ('cat','fox'):
-   path=c.beginPath(); path.moveTo(20,63); path.lineTo(18,91); path.lineTo(40,78); path.lineTo(60,78); path.lineTo(82,91); path.lineTo(80,63); path.close(); c.drawPath(path,fill=1,stroke=0)
-  elif kind=='dog':c.ellipse(15,50,32,83,fill=1,stroke=0); c.ellipse(68,50,85,83,fill=1,stroke=0)
-  face(color)
- elif kind in ('bird','bat','penguin'):
-  if kind=='bat':
-   c.setFillColor(PUR); t=c.beginPath(); t.moveTo(50,69); t.curveTo(37,88,27,74,15,81); t.lineTo(21,54); t.lineTo(12,61); t.curveTo(13,35,31,33,50,48); t.curveTo(69,33,87,35,88,61); t.lineTo(79,54); t.lineTo(85,81); t.curveTo(73,74,63,88,50,69); t.close(); c.drawPath(t,fill=1,stroke=0); c.setFillColor(GOLD); c.circle(42,59,2,fill=1,stroke=0); c.circle(58,59,2,fill=1,stroke=0)
-  elif kind=='bird':
-   c.setFillColor(GOLD); c.ellipse(18,32,80,77,fill=1,stroke=0); c.ellipse(52,62,92,92,fill=1,stroke=0); c.setFillColor(CORAL); t=c.beginPath(); t.moveTo(86,67); t.lineTo(99,61); t.lineTo(87,55); t.close(); c.drawPath(t,fill=1,stroke=0)
-   c.setFillColor(INK); c.circle(72,73,3,fill=1,stroke=0)
-  else:
-   c.setFillColor(INK); c.ellipse(20,17,80,88,fill=1,stroke=0); c.setFillColor(white); c.ellipse(32,24,68,70,fill=1,stroke=0); c.setFillColor(GOLD); t=c.beginPath(); t.moveTo(45,63); t.lineTo(55,63); t.lineTo(50,54); t.close(); c.drawPath(t,fill=1,stroke=0); c.ellipse(34,10,46,17,fill=1,stroke=0); c.ellipse(55,10,67,17,fill=1,stroke=0)
- elif kind=='mummy':
-  c.setFillColor(HexColor('#E9E3D8')); c.roundRect(21,21,58,58,23,fill=1,stroke=0); c.setStrokeColor(HexColor('#BEB5A7')); c.setLineWidth(4)
-  for yy in [33,43,53,63,73]:c.line(25,yy,75,yy)
-  c.setFillColor(INK); c.circle(41,58,3,fill=1,stroke=0); c.circle(59,58,3,fill=1,stroke=0)
- elif kind=='dragon':
-  c.setFillColor(CORAL); c.circle(49,50,31,fill=1,stroke=0); t=c.beginPath(); t.moveTo(25,72); t.lineTo(28,94); t.lineTo(45,74); t.close(); c.drawPath(t,fill=1,stroke=0); t=c.beginPath(); t.moveTo(57,74); t.lineTo(78,94); t.lineTo(75,68); t.close(); c.drawPath(t,fill=1,stroke=0); c.setFillColor(INK); c.circle(40,55,3,fill=1,stroke=0); c.circle(60,55,3,fill=1,stroke=0); c.setStrokeColor(INK); c.arc(39,34,62,51,200,140)
- elif kind in ('broom','hat','bow','wand'):
-  if kind=='broom':c.setStrokeColor(HexColor('#8B5A34')); c.setLineWidth(8); c.line(25,34,78,79); c.setFillColor(GOLD); t=c.beginPath(); t.moveTo(18,24); t.lineTo(40,45); t.lineTo(25,66); t.lineTo(12,55); t.close(); c.drawPath(t,fill=1,stroke=0)
-  elif kind=='hat':c.setFillColor(PUR); t=c.beginPath(); t.moveTo(20,42); t.lineTo(48,85); t.lineTo(68,42); t.close(); c.drawPath(t,fill=1,stroke=0); c.setFillColor(GOLD); c.ellipse(13,35,84,49,fill=1,stroke=0)
-  elif kind=='bow':c.setFillColor(CORAL); t=c.beginPath(); t.moveTo(46,50); t.lineTo(16,77); t.lineTo(19,36); t.close(); c.drawPath(t,fill=1,stroke=0); t=c.beginPath(); t.moveTo(54,50); t.lineTo(84,77); t.lineTo(81,36); t.close(); c.drawPath(t,fill=1,stroke=0); c.circle(50,52,8,fill=1,stroke=0)
-  else:c.setStrokeColor(PUR); c.setLineWidth(7); c.line(28,29,73,73); c.setFillColor(GOLD); draw_star(c,75,77,14)
- elif kind=='pumpkin':
-  c.setFillColor(CORAL); c.ellipse(18,26,82,75,fill=1,stroke=0); c.setFillColor(HexColor('#F49A48')); c.ellipse(34,23,66,78,fill=1,stroke=0); c.setFillColor(TEAL); c.roundRect(45,73,10,13,3,fill=1,stroke=0); c.setFillColor(INK); c.circle(41,51,3,fill=1,stroke=0); c.circle(59,51,3,fill=1,stroke=0); c.setStrokeColor(INK); c.arc(40,36,60,49,200,140)
- elif kind=='bowl':
-  c.setFillColor(CORAL); c.ellipse(21,48,79,68,fill=1,stroke=0); c.setFillColor(HexColor('#F5B44A')); c.wedge(22,24,78,60,180,180,fill=1,stroke=0); c.setStrokeColor(PUR); c.setLineWidth(3); c.arc(27,19,73,50,180,180)
- elif kind=='leaf':
-  c.setFillColor(GOLD); c.ellipse(22,26,78,78,fill=1,stroke=0); c.setStrokeColor(TEAL); c.setLineWidth(3); c.line(27,30,75,75); c.line(43,45,39,67); c.line(55,56,69,52)
- elif kind=='wind':
-  c.setStrokeColor(BLUE); c.setLineWidth(5)
-  for y in [37,51,65]:c.arc(17,y,83,y+20,0,180)
-  c.setFillColor(GOLD); draw_star(c,74,73,10)
- elif kind in ('tree','apple'):
-  c.setFillColor(HexColor('#8B5A34')); c.roundRect(43,18,14,48,4,fill=1,stroke=0); c.setFillColor(TEAL); c.circle(50,67,25,fill=1,stroke=0); c.circle(34,57,17,fill=1,stroke=0); c.circle(67,57,17,fill=1,stroke=0)
-  if kind=='apple':c.setFillColor(CORAL); c.circle(38,61,6,fill=1,stroke=0); c.circle(66,70,6,fill=1,stroke=0); c.circle(55,48,6,fill=1,stroke=0)
- elif kind in ('snow','sun','flower','star'):
-  if kind=='snow':
-   c.setStrokeColor(BLUE); c.setLineWidth(4)
-   for a in [0,60,120]:
-    c.saveState(); c.translate(50,50); c.rotate(a); c.line(-28,0,28,0); c.line(20,0,13,7); c.line(20,0,13,-7); c.restoreState()
-  elif kind=='sun':c.setFillColor(GOLD); c.circle(50,50,20,fill=1,stroke=0); c.setStrokeColor(GOLD); c.setLineWidth(5)
-  elif kind=='flower':
-   c.setFillColor(CORAL)
-   for a in range(0,360,60):c.saveState(); c.translate(50,50); c.rotate(a); c.ellipse(-9,20,9,38,fill=1,stroke=0); c.restoreState()
-   c.setFillColor(GOLD); c.circle(50,50,9,fill=1,stroke=0)
-  else:c.setFillColor(GOLD); draw_star(c,50,50,28)
- elif kind in ('place','home'):
-  c.setFillColor(TEAL if kind=='place' else GOLD); t=c.beginPath(); t.moveTo(18,50); t.lineTo(50,80); t.lineTo(82,50); t.lineTo(73,50); t.lineTo(73,25); t.lineTo(57,25); t.lineTo(57,43); t.lineTo(50,50); t.close(); c.drawPath(t,fill=1,stroke=0)
- elif kind=='coat':
-  c.setFillColor(CORAL); t=c.beginPath(); t.moveTo(34,78); t.lineTo(18,65); t.lineTo(27,38); t.lineTo(34,43); t.lineTo(37,22); t.lineTo(63,22); t.lineTo(66,43); t.lineTo(73,38); t.lineTo(82,65); t.lineTo(66,78); t.close(); c.drawPath(t,fill=1,stroke=0)
- elif kind=='boots':
-  c.setFillColor(PUR); c.roundRect(24,28,21,49,5,fill=1,stroke=0); c.roundRect(55,28,21,49,5,fill=1,stroke=0); c.setFillColor(GOLD); c.rect(20,22,28,9,fill=1,stroke=0); c.rect(52,22,28,9,fill=1,stroke=0)
- elif kind=='footprints':
-  c.setFillColor(BLUE); c.ellipse(23,22,48,49,fill=1,stroke=0); c.ellipse(53,54,78,81,fill=1,stroke=0)
- elif kind=='question':
-  c.setFillColor(PUR); c.setFont('Helvetica-Bold',57); c.drawCentredString(50,31,'?')
- elif kind in ('first','next','last'):
-  c.setFillColor(PUR if kind=='first' else TEAL if kind=='next' else CORAL); c.setFont('Helvetica-Bold',54); c.drawCentredString(50,31,'1' if kind=='first' else '→' if kind=='next' else '★')
- elif kind in ('problem','helper','result'):
-  if kind=='problem':c.setFillColor(CORAL); c.roundRect(23,30,54,43,8,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',24); c.drawCentredString(50,39,'!')
-  elif kind=='helper':c.setFillColor(TEAL); c.circle(50,53,19,fill=1,stroke=0); c.setFillColor(GOLD); draw_star(c,50,53,10)
-  else:c.setFillColor(GOLD); draw_star(c,50,53,28)
- c.restoreState()
+CURRENT_WEEK=1
+
+def prepare_art_tiles():
+ """Check that every book has its prepared, isolated transparent art stickers."""
+ missing=[ART_CROPS/f'week-{week}-tile-{idx}.png' for week in range(1,10) for idx in range(9) if not (ART_CROPS/f'week-{week}-tile-{idx}.png').is_file()]
+ if not (ART_CROPS/'week-1-bow.png').is_file(): missing.append(ART_CROPS/'week-1-bow.png')
+ if missing: raise FileNotFoundError(f'Missing {len(missing)} prepared student art tiles; run scripts/build_art_tiles.py')
+
+def icon(c,kind,cx,cy,size,tile_idx=None):
+ """Place the current book's painted story art wherever a student picture cue belongs."""
+ if tile_idx is None:
+  cards=BOOKS[CURRENT_WEEK]['cards']
+  tile_idx=next((i for i,(_,card_kind) in enumerate(cards) if card_kind==kind),None)
+  if tile_idx is None:
+   # Story-structure cues borrow a character or scene from this week's shared book.
+   fallback={'place':1,'question':2,'first':0,'next':1,'last':2,'problem':1,'helper':2,'result':3,'book':0,'star':4,'sun':2,'flower':1,'snow':4,'wind':2,'tree':1,'home':2,'apple':5,'child':0,'coat':3,'boots':4,'footprints':2}
+   tile_idx=fallback.get(kind,0)
+  tile_idx=min(tile_idx,8)
+ path=ART_CROPS/'week-1-bow.png' if CURRENT_WEEK==1 and kind=='bow' else ART_CROPS/f'week-{CURRENT_WEEK}-tile-{tile_idx}.png'
+ c.drawImage(ImageReader(str(path)),cx-size/2,cy-size/2,size,size,mask='auto',preserveAspectRatio=True,anchor='c')
 
 def header(c,w,lesson,title,accent):
  c.setFillColor(PAPER); c.rect(0,0,W,H,fill=1,stroke=0)
@@ -274,7 +213,8 @@ def page_craft(c,w,num,accent):
  para(c,'I will make __________________________.',58,548,470,'body',27); line_set(c,58,509,470)
  c.setFillColor(PUR); c.setFont('Helvetica-Bold',13); c.drawString(58,478,'MY PICTURE / CRAFT')
  c.setStrokeColor(HexColor('#BFCADB')); c.setDash(5,4); c.roundRect(58,239,496,220,12,fill=0,stroke=1); c.setDash()
- icon(c,BOOKS[w['n']]['icon'],W/2,352,100)
+ craft_art='broom' if w['n']==1 else BOOKS[w['n']]['icon']
+ icon(c,craft_art,W/2,352,112)
  c.setFillColor(MUTED); c.setFont('Helvetica',9); c.drawCentredString(W/2,219,'DRAW IT HERE • ADD YOUR OWN DETAILS')
  # cut-out tokens for assembling the finished work
  labels=BOOKS[w['n']]['cards'][:3]
@@ -301,17 +241,13 @@ def day_kind(lesson,day_index,total,week_n):
 LESSONS_BY_WEEK={w['n']:sorted([l for l in LESSONS if l['week']==w['n']],key=lambda l:l['date']) for w in WEEKS}
 ACCENTS=[PUR,CORAL,TEAL,GOLD,BLUE,PUR,TEAL,BLUE,CORAL]
 OUT.mkdir(parents=True,exist_ok=True)
+prepare_art_tiles()
 for w in WEEKS:
- n=w['n']; lessons=LESSONS_BY_WEEK[n]; book=w['books3']; assert book==w['books4'],f'Week {n}: shared books diverge'
+ n=w['n']; CURRENT_WEEK=n; lessons=LESSONS_BY_WEEK[n]; book=w['books3']; assert book==w['books4'],f'Week {n}: shared books diverge'
  bookdata=BOOKS[n]; path=OUT/f'week-{n}-student-printables.pdf'
- # Week 1 is the teacher-approved illustrated PDF in dist/resources. Keep that exact artifact.
- if n==1:
-  if not path.exists(): raise FileNotFoundError(f'Place the approved Week 1 student PDF at {path}')
-  print(path.name,book,'approved source PDF preserved')
-  continue
  pdf=canvas.Canvas(str(path),pagesize=letter)
  pdf.setTitle(f'Week {n} student printables • {book}'); pdf.setAuthor('Stacie Classroom')
- # Start directly with student work; the approved Week 1 pack has no separate cover.
+ # Start directly with the student work; the weekly art and layout stay consistent.
  page_num=1
  for di,l in enumerate(lessons):
   typ=day_kind(l,di,len(lessons),n); ac=ACCENTS[(n+di-1)%len(ACCENTS)]
@@ -330,7 +266,7 @@ for w in WEEKS:
    cards=bookdata['cards']; cw=250; ch=99; gapx=22; gapy=12; x0=45; ytop=H-128
    for i,(label,k) in enumerate(cards):
     col=i%2; row=i//2; x=x0+col*(cw+gapx); y=ytop-(row+1)*ch-row*gapy
-    rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#E8F1F9')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True); icon(pdf,k,x+54,y+50,63)
+    rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#E8F1F9')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True); icon(pdf,k,x+54,y+50,63,tile_idx=min(i,8))
     pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',13); pdf.drawString(x+105,y+45,label[:19])
    pdf.showPage(); page_num+=1
  # Craft/activity page is student-facing; no teacher procedure block.
