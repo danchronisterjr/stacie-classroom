@@ -35,3 +35,4 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{
 @media(max-width:600px){.day-subjects{grid-template-columns:1fr}.daily-subject{min-height:0;padding:16px;font-size:15px}.daily-subject strong{font-size:16px}.nav{min-height:44px}}
 
 .download-group{min-width:0;display:flex;flex-direction:column;gap:5px}.download-group .download{height:100%;margin:0}.pdf-open{font-size:14px;padding:5px 4px;color:var(--blue);text-underline-offset:3px}.lesson-heading .download-group{min-width:220px}
+.book-arc{margin:18px 0 0;padding:17px 19px;border:1px solid var(--line);border-left:4px solid var(--read);border-radius:10px;background:var(--surface2);font-size:15px;line-height:1.7}.book-arc>b:first-child{color:var(--ink)}.book-arc span{color:var(--muted)}.book-connection{margin:20px 0;padding:15px 18px;border-left:4px solid var(--read);border-radius:8px;background:var(--surface2);font-size:16px;line-height:1.6}.book-connection b{color:var(--ink)}
