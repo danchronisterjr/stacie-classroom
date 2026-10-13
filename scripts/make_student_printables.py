@@ -303,24 +303,16 @@ ACCENTS=[PUR,CORAL,TEAL,GOLD,BLUE,PUR,TEAL,BLUE,CORAL]
 OUT.mkdir(parents=True,exist_ok=True)
 for w in WEEKS:
  n=w['n']; lessons=LESSONS_BY_WEEK[n]; book=w['books3']; assert book==w['books4'],f'Week {n}: shared books diverge'
- bookdata=BOOKS[n]; path=OUT/f'week-{n}-student-printables.pdf'; pdf=canvas.Canvas(str(path),pagesize=letter)
+ bookdata=BOOKS[n]; path=OUT/f'week-{n}-student-printables.pdf'
+ # Week 1 is the teacher-approved illustrated PDF in dist/resources. Keep that exact artifact.
+ if n==1:
+  if not path.exists(): raise FileNotFoundError(f'Place the approved Week 1 student PDF at {path}')
+  print(path.name,book,'approved source PDF preserved')
+  continue
+ pdf=canvas.Canvas(str(path),pagesize=letter)
  pdf.setTitle(f'Week {n} student printables • {book}'); pdf.setAuthor('Stacie Classroom')
- # Cover, using only student-facing directions and visuals.
- pdf.setFillColor(PAPER); pdf.rect(0,0,W,H,fill=1,stroke=0); pdf.setFillColor(LAV if n in (1,3,4,5,6,7) else HexColor('#E8F1F9')); pdf.roundRect(35,467,W-70,287,24,fill=1,stroke=0); pdf.setFillColor(ACCENT:=ACCENTS[n-1]); pdf.roundRect(35,467,8,287,4,fill=1,stroke=0)
- pdf.setFillColor(ACCENT); pdf.setFont('Helvetica-Bold',10); pdf.drawString(60,712,f"WEEK {n}  •  {w['dates'].upper()}")
- pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',28); pdf.drawString(60,670,'My Story & Make Book')
- pdf.setFont('Helvetica-Bold',18); pdf.drawString(60,637,book[:38])
- para(pdf,'Look for clues. Put events in order. Tell or show what you learned. Make something from your ideas.',60,611,300,'body',66)
- icon(pdf,bookdata['icon'],451,603,150)
- pill(pdf,'READ • FIND • CREATE',60,504,GOLD,INK,158)
- pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',17); pdf.drawString(40,426,'Inside your book')
- cover=[('LOOK & FIND','Book-clue response pages',LAV,PUR),('CUT & MATCH','Picture and story cards',MINT,TEAL),('RETELL','Sequence / story structure',PALE,GOLD),('MAKE','A book-inspired creation',PINK,CORAL)]
- for i,(a,b,fill,acc) in enumerate(cover):
-  col=i%2; row=i//2; x=40+col*270; y=300-row*105; rounded(pdf,x,y,252,85,fill,LINE,13)
-  pdf.setFillColor(acc); pdf.setFont('Helvetica-Bold',12); pdf.drawString(x+16,y+55,a); pdf.setFillColor(INK); pdf.setFont('Helvetica',10.5); pdf.drawString(x+16,y+31,b)
- pdf.setFillColor(MUTED); pdf.setFont('Helvetica',9); pdf.drawString(44,70,'These original activities go with your classroom copy. Use the real pages as story clues.')
- footer(pdf,1,w); pdf.showPage()
- page_num=2
+ # Start directly with student work; the approved Week 1 pack has no separate cover.
+ page_num=1
  for di,l in enumerate(lessons):
   typ=day_kind(l,di,len(lessons),n); ac=ACCENTS[(n+di-1)%len(ACCENTS)]
   if typ=='wh':page_wh(pdf,w,l,page_num,ac)
@@ -331,15 +323,16 @@ for w in WEEKS:
   elif typ in ('season','season_compare'):page_season(pdf,w,l,page_num,ac,typ=='season_compare')
   else:page_friday(pdf,w,l,page_num,ac,n==7)
   pdf.showPage(); page_num+=1
- # Picture-card page: the story elements vary by title and week.
- pdf.setFillColor(PAPER); pdf.rect(0,0,W,H,fill=1,stroke=0); pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',22); pdf.drawString(40,H-51,'Cut-apart picture cards')
- para(pdf,'Cut on the dotted lines. Match the pictures to your book. Use them to show what happened.',40,H-68,W-80)
- cards=bookdata['cards']; cw=250; ch=99; gapx=22; gapy=12; x0=45; ytop=H-128
- for i,(label,k) in enumerate(cards):
-  col=i%2; row=i//2; x=x0+col*(cw+gapx); y=ytop-(row+1)*ch-row*gapy
-  rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#E8F1F9')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True); icon(pdf,k,x+54,y+50,63)
-  pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',13); pdf.drawString(x+105,y+45,label[:19])
- pdf.showPage(); page_num+=1
+  if di==0:
+   # Place the book-specific cut-apart visual cards after the first response page.
+   pdf.setFillColor(PAPER); pdf.rect(0,0,W,H,fill=1,stroke=0); pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',22); pdf.drawString(40,H-51,'Cut-apart picture cards')
+   para(pdf,'Cut on the dotted lines. Match the pictures to your book. Use them to show what happened.',40,H-68,W-80)
+   cards=bookdata['cards']; cw=250; ch=99; gapx=22; gapy=12; x0=45; ytop=H-128
+   for i,(label,k) in enumerate(cards):
+    col=i%2; row=i//2; x=x0+col*(cw+gapx); y=ytop-(row+1)*ch-row*gapy
+    rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#E8F1F9')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True); icon(pdf,k,x+54,y+50,63)
+    pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',13); pdf.drawString(x+105,y+45,label[:19])
+   pdf.showPage(); page_num+=1
  # Craft/activity page is student-facing; no teacher procedure block.
- page_craft(pdf,w,page_num,ACCENT); pdf.showPage(); pdf.save()
+ page_craft(pdf,w,page_num,ACCENTS[n-1]); pdf.showPage(); pdf.save()
  print(path.name,book, f'{page_num} pages')

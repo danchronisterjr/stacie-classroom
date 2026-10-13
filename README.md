@@ -6,7 +6,7 @@ Calendar-first Grade 3 / Grade 4 teaching planner for October 13–December 18, 
 
 Open `dist/index.html` in Safari or Chrome, keeping the entire dist folder together. Choose Week, Month or Nine weeks; open a subject on a dated card. The six pages share the same selected week. Light mode is the default; a chosen theme is saved on this device.
 
-Each resource has a PDF download and an Open / print PDF link. All 108 PDFs are included under `dist/resources`. Parent outlines, individual daily lessons, weekly teaching maps, real-book guides, original student-facing printables for all nine shared books—with a dated student page for each teaching day, reusable picture cards, book-specific sequence or information mats, and a make-and-create page—Friday checks, classroom mats, grade records and blank progress-monitoring forms are included. Complete packets contain the revised component files. Actual books and licensed curriculum lessons must be obtained separately.
+Each resource has a PDF download and an Open / print PDF link. All 108 PDFs are included under `dist/resources`. Parent outlines, individual daily lessons, weekly teaching maps, real-book guides, original student-facing printables for all nine shared books—with a dated student page for each teaching day, reusable picture cards, book-specific sequence or information mats, and a make-and-create page—Friday checks, classroom mats, grade records and blank progress-monitoring forms are included. Complete packets contain the revised component files. Week 1 uses the approved illustrated student packet as-is; the build script preserves that file while generating the remaining book-matched packs. Actual books and licensed curriculum lessons must be obtained separately.
 
 ## GitHub Pages
 
