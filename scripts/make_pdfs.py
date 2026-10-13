@@ -214,5 +214,7 @@ def merge(name,files):
  writer.write(str(P/name));writer.close()
 merge('full-binder.pdf',['routine.pdf','teks-reference.pdf']+[f'week-{w["n"]}-plan.pdf' for w in x['WEEKS']]+[f'day-{l["date"]}.pdf' for l in x['LESSONS']]+['parent-outlines.pdf'])
 merge('full-assessments.pdf',[f'week-{w["n"]}-friday.pdf' for w in x['WEEKS']]+['weekly-grade-evidence.pdf','iep-setup.pdf','monitoring-log.pdf','goal-trend.pdf','task-analysis.pdf'])
-merge('full-resources.pdf',['book-shopping-list.pdf','seasonal-guide.pdf']+[f'week-{w["n"]}-book-guide.pdf' for w in x['WEEKS']]+['response-story-mats.pdf','writing-history-frames.pdf','sharing-mat.pdf','fraction-strips.pdf','array-mat.pdf','science-record.pdf','resource-selector.pdf','parent-outlines.pdf'])
+import subprocess,sys
+subprocess.run([sys.executable,str(ROOT/'scripts/make_student_printables.py')],check=True)
+merge('full-resources.pdf',['book-shopping-list.pdf','seasonal-guide.pdf']+[f'week-{w["n"]}-book-guide.pdf' for w in x['WEEKS']]+[f'week-{w["n"]}-student-printables.pdf' for w in x['WEEKS']]+['response-story-mats.pdf','writing-history-frames.pdf','sharing-mat.pdf','fraction-strips.pdf','array-mat.pdf','science-record.pdf','resource-selector.pdf','parent-outlines.pdf'])
 print('Completed every original PDF and the missing TEKS reference:',len(list(P.glob('*.pdf'))),'PDFs.')
