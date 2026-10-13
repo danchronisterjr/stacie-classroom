@@ -36,3 +36,18 @@ button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{
 
 .download-group{min-width:0;display:flex;flex-direction:column;gap:5px}.download-group .download{height:100%;margin:0}.pdf-open{font-size:14px;padding:5px 4px;color:var(--blue);text-underline-offset:3px}.lesson-heading .download-group{min-width:220px}
 .book-arc{margin:18px 0 0;padding:17px 19px;border:1px solid var(--line);border-left:4px solid var(--read);border-radius:10px;background:var(--surface2);font-size:15px;line-height:1.7}.book-arc>b:first-child{color:var(--ink)}.book-arc span{color:var(--muted)}.book-connection{margin:20px 0;padding:15px 18px;border-left:4px solid var(--read);border-radius:8px;background:var(--surface2);font-size:16px;line-height:1.6}.book-connection b{color:var(--ink)}
+
+/* Warm, colorful classroom overview with a single weekly read-aloud card. */
+.weekly-story-card{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,1fr);gap:16px;margin:18px 0 24px;padding:22px;border:1px solid #ead8b8;border-radius:16px;background:#fffaf0;box-shadow:0 5px 18px #3445630b}
+.weekly-story-card.storybook{background:linear-gradient(115deg,#fff8ee 0%,#f3efff 100%);border-color:#e1d4f2}
+.weekly-story-card.autumn{background:linear-gradient(115deg,#fff9ed 0%,#f0f7e9 100%);border-color:#d9e4ca}
+.weekly-story-card.winter{background:linear-gradient(115deg,#edf7ff 0%,#eff7f5 100%);border-color:#cee1e8}
+.story-label{display:inline-flex;border-radius:20px;padding:5px 10px;background:#fff;color:#72529b;font-size:11px;font-weight:800;letter-spacing:1.1px}
+.weekly-story-card.autumn .story-label{color:#89521d}.weekly-story-card.winter .story-label{color:#2a6476}
+.weekly-story-card h3{margin:10px 0 5px;font-size:22px}.weekly-story-card p{margin:0;color:#4d5d70;line-height:1.6;font-size:15px}
+.story-finish{align-self:stretch;padding:15px 17px;border-radius:12px;background:#ffffffc9;border:1px solid #e4e7ed}.story-finish b{display:block;margin-bottom:5px;color:#37485c}
+.week-heading{align-items:center}.weekly-overview{margin-bottom:16px}
+.day{border:1px solid #dce4ee;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 3px 12px #273a500b}
+.daytop{background:#f8f9fc}.daily-subject{border-radius:10px!important;border:1px solid color-mix(in srgb,var(--subject) 20%, white)!important;background:color-mix(in srgb,var(--subject) 6%, white)!important}
+.daily-subject strong{color:var(--subject)}.daily-subject .openhint{color:#53657a}
+@media(max-width:760px){.weekly-story-card{grid-template-columns:1fr;padding:17px}.story-finish{padding:13px}}
