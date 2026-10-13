@@ -10,6 +10,23 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "scripts/art/raw"
 OUT = ROOT / "scripts/art/crops"
+WEB_OUT = ROOT / "dist/art/student-packs"
+
+# A small, consistent set of book-matched illustrations for the weekly
+# workspace and the student-pack download cards. The print PDFs use the full
+# set of nine tiles; the site only needs four optimized previews per book.
+WEB_PREVIEWS = {
+    1: (0, 1, 2, 6),
+    2: (7, 2, 5, 6),
+    3: (7, 0, 2, 3),
+    4: (0, 4, 5, 1),
+    5: (0, 2, 4, 1),
+    6: (5, 0, 3, 6),
+    7: (8, 0, 4, 6),
+    8: (8, 0, 2, 4),
+    9: (5, 0, 2, 6),
+}
+WEB_ROLES = ("featured", "story-question", "picture-cards", "make-it")
 
 
 def roots(parent, value):
@@ -99,8 +116,13 @@ def build(week):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    WEB_OUT.mkdir(parents=True, exist_ok=True)
     for week in range(1, 10):
         build(week)
+        for role, tile_index in zip(WEB_ROLES, WEB_PREVIEWS[week]):
+            image = Image.open(OUT / f"week-{week}-tile-{tile_index}.png").convert("RGBA")
+            image.thumbnail((440, 440), Image.Resampling.LANCZOS)
+            image.save(WEB_OUT / f"week-{week}-{role}.png", optimize=True)
     bow = Image.open(RAW / "week-1-bow.png").convert("RGBA")
     alpha = bow.getchannel("A").point(lambda value: 255 if value > 8 else 0)
     bounds = alpha.getbbox()
@@ -110,7 +132,7 @@ def main():
         bow = bow.crop((max(0, left - pad), max(0, top - pad), min(bow.width, right + pad), min(bow.height, bottom + pad)))
     bow.thumbnail((480, 480), Image.Resampling.LANCZOS)
     bow.save(OUT / "week-1-bow.png", optimize=True)
-    print("Built 81 isolated transparent student-art tiles.")
+    print("Built 81 isolated transparent student-art tiles and 36 weekly web previews.")
 
 
 if __name__ == "__main__":
