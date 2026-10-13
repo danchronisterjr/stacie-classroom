@@ -81,14 +81,6 @@ for w in x['WEEKS']:
 story+=section('Friday routine','Each Friday: short spelling, reading, math and science checks. Science experiments: October 23, November 6, November 20 and December 11. The experiment provides the science check evidence. November 23-27 is fall break in this plan.')
 story+=section('Individual learning outline','Student: __________  Current learning step: __________  Successful response mode: __________  Helpful supports: __________  Next challenge: __________  Family note: __________. IEP goals will be added after Stacie provides them.')
 save('parent-outlines.pdf',story)
-# Complete grade list.
-story=title('Grades planned before the nine weeks','45 proposed entries per learner: 23 ELAR, 9 math, 9 science, 4 social studies. Confirm campus requirements and IEP grading rules.')
-story.append(p('Every Friday: spelling, reading, math and science. The experiment is the science grade on lab Fridays. Writing is added in weeks 1, 3, 5, 7 and 9; social studies in weeks 2, 4, 6 and 8.'))
-rows=[['Date','Checks and additional product','Record']]
-for l in x['LESSONS']:
- if l['friday']:rows.append([l['date'],'Spelling; reading; math; '+('science experiment' if l['experiment'] else 'science check')+'; '+l['extra'],'Score: ____\nPrompt: ____\nEvidence: ____'])
-story.append(table(rows,[85,290,153]));story+=section('Scoring and evidence','Three short tasks per check. Record correct/total and support; use confirmed school rules to convert the evidence to a grade. A supported small-number task does not demonstrate the full grade-level standard. Keep refusal/no response separate from incorrect academic responses. Do not substitute classroom grade percentages for IEP goal measures.')
-save('grade-register.pdf',story)
 story=title('Same routine, every day','Visual sequence: arrive → yoga → library → feelings → preview → read-aloud → subject blocks')
 story+=section('8-9 AM | confirmed shared hour','8:00-8:07 yoga. Suggested remaining times: 8:07-8:25 library and return; 8:25-8:32 feelings; 8:32-8:37 learning preview; 8:37-9:00 weekly read-aloud, response and transition. Adjust library timing once to fit the campus schedule, then keep the sequence stable.')
 story+=section('Math | 38-minute routine','5 minutes familiar fluency. 3 minutes I Do with the current STEMscopes skill. 5 minutes We Do. Two 10-minute rotations: teacher spends about 6 minutes on the enrolled-grade skill and 4 minutes on placement-selected Bridges work; the other student uses mastered practice or known Vizzle. Finish with 5 minutes of fresh responses and recording. Extend fluency to 10 minutes if the block allows; schedule longer Bridges lessons when needed without compressing program requirements.')
@@ -221,6 +213,6 @@ def merge(name,files):
  for f in files:writer.append(str(P/f),outline_item=f.removesuffix('.pdf').replace('-',' '))
  writer.write(str(P/name));writer.close()
 merge('full-binder.pdf',['routine.pdf','teks-reference.pdf']+[f'week-{w["n"]}-plan.pdf' for w in x['WEEKS']]+[f'day-{l["date"]}.pdf' for l in x['LESSONS']]+['parent-outlines.pdf'])
-merge('full-assessments.pdf',['grade-register.pdf']+[f'week-{w["n"]}-friday.pdf' for w in x['WEEKS']]+['weekly-grade-evidence.pdf','iep-setup.pdf','monitoring-log.pdf','goal-trend.pdf','task-analysis.pdf'])
+merge('full-assessments.pdf',[f'week-{w["n"]}-friday.pdf' for w in x['WEEKS']]+['weekly-grade-evidence.pdf','iep-setup.pdf','monitoring-log.pdf','goal-trend.pdf','task-analysis.pdf'])
 merge('full-resources.pdf',['book-shopping-list.pdf','seasonal-guide.pdf']+[f'week-{w["n"]}-book-guide.pdf' for w in x['WEEKS']]+['response-story-mats.pdf','writing-history-frames.pdf','sharing-mat.pdf','fraction-strips.pdf','array-mat.pdf','science-record.pdf','resource-selector.pdf','parent-outlines.pdf'])
 print('Completed every original PDF and the missing TEKS reference:',len(list(P.glob('*.pdf'))),'PDFs.')
