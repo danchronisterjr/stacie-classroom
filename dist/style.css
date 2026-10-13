@@ -225,9 +225,7 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .student-pack-feature h3{margin:3px 0 2px;font-size:22px}
 .student-pack-feature p{margin:0;color:var(--muted);font-size:16px}
 .student-pack-kicker{color:#81500a;font-size:13px;font-weight:800;letter-spacing:.09em}
-.student-pack-feature .download-group{width:min(100%,330px);flex:0 0 330px}
 .student-pack-feature .download{background:#ffe59a;border:2px solid #d89818;color:#402900;font-size:17px;font-weight:800;padding:15px 16px;min-height:58px;border-radius:12px}
-.student-pack-feature .pdf-open{font-size:14px}
 .student-pack-library{margin:0 0 30px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface,#fff)}
 .student-pack-library-heading{margin-bottom:16px}
 .student-pack-library-heading h2{margin:4px 0;font-size:25px}
@@ -238,19 +236,16 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .student-pack-library-grid article>div:first-child b{color:var(--read)}
 .student-pack-library-grid article>div:first-child span{font-weight:700;line-height:1.3}
 .student-pack-library-grid .download{font-size:14px;font-weight:700}
-.calendar-pack-link{display:block;margin-top:auto;padding:9px 8px;border-radius:9px;background:#fff0bd;color:#593c09;text-decoration:none;text-align:center;font-size:12px;line-height:1.3;font-weight:800}
-.calendar-pack-link:hover{background:#ffe18b}
 :root[data-theme=dark] .student-pack-feature{background:linear-gradient(105deg,#3d3424,#252a35 78%);border-color:#a87919}
 :root[data-theme=dark] .student-pack-kicker{color:#f6d486}
 :root[data-theme=dark] .student-pack-feature .download{background:#624b1f;border-color:#d5a53d;color:#fff3ca}
 :root[data-theme=dark] .student-pack-library{background:var(--surface);border-color:var(--line)}
 :root[data-theme=dark] .student-pack-library-grid article{background:var(--surface2);border-color:var(--line)}
-:root[data-theme=dark] .calendar-pack-link{background:#59451f;color:#ffedbd}
-@media(max-width:850px){.student-pack-feature{align-items:stretch;flex-direction:column;gap:12px}.student-pack-feature .download-group{width:100%;flex:auto}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:850px){.student-pack-feature{grid-template-columns:1fr;gap:12px}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.student-pack-library-grid{grid-template-columns:1fr}.student-pack-feature{padding:17px}}
 
 /* Put the actual book-matched student art in every weekly pack entry point. */
-.student-pack-feature{display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(285px,1fr) minmax(255px,310px);align-items:center;gap:16px}
+.student-pack-feature{display:grid;grid-template-columns:minmax(0,1fr) minmax(255px,330px);align-items:center;gap:16px}
 .student-pack-intro{display:grid;grid-template-columns:94px minmax(0,1fr);align-items:center;gap:13px;min-width:0}
 .student-pack-intro>img{display:block;width:94px;height:104px;object-fit:contain;padding:5px;border-radius:14px;background:#fffaf0;box-shadow:0 3px 9px #7151231a}
 .student-pack-intro h3{margin:3px 0 4px;font-size:22px;line-height:1.2}
@@ -260,7 +255,7 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .student-pack-preview figure{display:grid;grid-template-rows:74px auto;align-items:center;justify-items:center;gap:4px;min-width:0;margin:0;padding:6px 4px;border:1px solid #f0dfb5;border-radius:10px;background:#fffdf7;text-align:center}
 .student-pack-preview img{display:block;width:100%;height:74px;object-fit:contain}
 .student-pack-preview figcaption{color:#62543b;font-size:12px;font-weight:750;line-height:1.25}
-.student-pack-actions{min-width:0}.student-pack-actions .download-group{width:100%;flex:auto}
+.student-pack-actions{min-width:0}.student-pack-actions .student-pack-download{width:100%}
 .student-pack-feature .download{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .student-pack-library-grid article{display:grid;grid-template-columns:82px minmax(0,1fr);grid-template-rows:auto 1fr;align-items:center;column-gap:11px}
 .student-pack-library-art{grid-column:1;grid-row:1/3;display:grid;place-items:center;width:82px;height:90px;overflow:hidden;border-radius:10px;background:linear-gradient(145deg,#fff3d1,#f5eafb)}
@@ -268,23 +263,18 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .student-pack-library-copy{display:grid;gap:4px;align-self:end;margin-bottom:9px}
 .student-pack-library-copy b{color:var(--read)}
 .student-pack-library-copy span{font-weight:700;line-height:1.3}
-.student-pack-library-grid .download-group{grid-column:2;align-self:start;width:100%}
+.student-pack-library-grid .student-pack-download{grid-column:2;align-self:start;width:100%}
 .student-pack-library-grid .download{font-size:14px;font-weight:700}
-.calendar-pack-link{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left}
-.calendar-pack-link img{width:40px;height:40px;flex:none;object-fit:contain;border-radius:8px;background:#fffaf0}
-.calendar-pack-link span{flex:1}
-.calendar-pack-link b{padding:5px 7px;border-radius:7px;background:#fff9e6;color:#76500e;font-size:11px;white-space:nowrap}
 .visual-sequence{align-items:stretch;gap:7px}
 .visual-sequence b{align-self:center}
 .visual-sequence>span{display:grid;grid-template-rows:46px auto;justify-items:center;gap:2px;min-width:78px;padding:4px 6px}
 .visual-sequence>span img{display:block;width:55px;height:46px;object-fit:contain}
 .visual-sequence i{font-size:11px;text-align:center}
-:root[data-theme=dark] .student-pack-intro>img,:root[data-theme=dark] .calendar-pack-link img{background:#f3ead9}
+:root[data-theme=dark] .student-pack-intro>img{background:#f3ead9}
 :root[data-theme=dark] .student-pack-preview figure{background:#302b34;border-color:#5d4d35}
 :root[data-theme=dark] .student-pack-preview figcaption,:root[data-theme=dark] .student-pack-intro small{color:#f2d59b}
 :root[data-theme=dark] .student-pack-library-art{background:linear-gradient(145deg,#493d2c,#353041)}
-:root[data-theme=dark] .calendar-pack-link b{background:#443a27;color:#f6dc9b}
-@media(max-width:1100px){.student-pack-feature{grid-template-columns:1fr minmax(240px,.85fr)}.student-pack-actions{grid-column:1/-1}.student-pack-actions .download-group{max-width:none}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1100px){.student-pack-feature{grid-template-columns:minmax(0,1fr) minmax(235px,.8fr)}.student-pack-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.student-pack-feature{grid-template-columns:1fr}.student-pack-intro{grid-template-columns:76px minmax(0,1fr)}.student-pack-intro>img{width:76px;height:84px}.student-pack-preview figure{grid-template-rows:68px auto}.student-pack-preview img{height:68px}.student-pack-library-grid{grid-template-columns:1fr}.visual-sequence{flex-wrap:wrap}.visual-sequence b{flex:1 0 100%}}
 @media(max-width:420px){.student-pack-preview{gap:4px}.student-pack-preview figcaption{font-size:11px}.student-pack-library-grid article{grid-template-columns:72px minmax(0,1fr)}.student-pack-library-art{width:72px;height:82px}}
 
@@ -300,30 +290,13 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 .weekly-story-card .story-main{position:relative;min-height:145px;padding-right:138px}
 .weekly-story-card .story-main>img{position:absolute;right:0;top:50%;width:132px;height:132px;object-fit:contain;transform:translateY(-50%);filter:drop-shadow(0 7px 5px #25163138)}
 .weekly-story-card .story-main h3,.weekly-story-card .story-main p{position:relative;z-index:1}
-.calendar-activity-link{display:block;margin-top:5px;padding:8px 9px;border:1px solid #d8c8e8;border-radius:9px;background:#f3eafb;color:#604381;text-align:center;text-decoration:none;font-size:12px;font-weight:850}
-.calendar-activity-link:hover{background:#e8d9f4}
-
-/* The illustrated activity menu makes the sample activities real, separate downloads. */
-.student-pack-feature .activity-download-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;width:100%;margin-top:2px}
-.activity-download{--activity:#744ba1;--activity-bg:#f5eefb;display:grid;grid-template-rows:104px auto 1fr auto;gap:8px;min-width:0;padding:10px;border:1px solid color-mix(in srgb,var(--activity) 24%,white);border-top:4px solid var(--activity);border-radius:13px;background:linear-gradient(145deg,var(--activity-bg),#fff 82%);box-shadow:0 3px 10px #2e38510d}
-.activity-download.math{--activity:#3576b3;--activity-bg:#edf5fd}.activity-download.drawing{--activity:#bd7330;--activity-bg:#fff5e7}.activity-download.retell{--activity:#218678;--activity-bg:#edf8f4}
-.activity-art{display:grid;place-items:center;overflow:hidden;border-radius:9px;background:radial-gradient(circle at 48% 45%,#fff 0%,var(--activity-bg) 75%)}.activity-art img{width:100%;height:104px;object-fit:contain;filter:drop-shadow(0 3px 3px #2d324024)}
-.activity-download>div:nth-child(2){display:grid;align-content:start;gap:3px;min-height:44px}.activity-download>div:nth-child(2) b{color:var(--activity);font-size:14px;line-height:1.25}.activity-download>div:nth-child(2) span{color:#59677c;font-size:12px;line-height:1.35}
-.activity-download .download-group{width:100%;min-width:0}.activity-download .download{min-height:42px;padding:9px 10px;border-left:4px solid var(--activity);font-size:12px}.activity-download .download span:last-child{font-size:10px}.activity-download .pdf-open{padding:3px 7px 0;font-size:11px}
-.student-pack-actions{display:grid;gap:7px;align-content:center}.student-pack-actions .download-group{min-width:0}.student-pack-actions .download{font-size:14px}
 .student-pack-preview figure{transition:transform .18s ease,box-shadow .18s ease}.student-pack-preview figure:hover{transform:translateY(-2px);box-shadow:0 5px 13px #553c6415}
 :root[data-theme=dark] .story-ribbon{background:linear-gradient(105deg,#30283a,#2c303b);border-color:#544762}
-:root[data-theme=dark] .story-ribbon-title b,:root[data-theme=dark] .activity-download>div:nth-child(2) span{color:var(--ink)}
+:root[data-theme=dark] .story-ribbon-title b{color:var(--ink)}
 :root[data-theme=dark] .story-ribbon-title small{color:var(--muted)}
 :root[data-theme=dark] .story-ribbon-rhythm,:root[data-theme=dark] .story-ribbon-link{background:#303544;color:var(--ink);border-color:var(--line)}
-:root[data-theme=dark] .activity-download{background:linear-gradient(145deg,#30303d,#292e3b 82%);border-color:#4b4659}
-:root[data-theme=dark] .activity-download.math{background:linear-gradient(145deg,#28384b,#292e3b 82%)}
-:root[data-theme=dark] .activity-download.drawing{background:linear-gradient(145deg,#403527,#292e3b 82%)}
-:root[data-theme=dark] .activity-download.retell{background:linear-gradient(145deg,#263c3a,#292e3b 82%)}
-:root[data-theme=dark] .activity-art{background:radial-gradient(circle at 48% 45%,#434051 0%,#30303d 75%)}
-:root[data-theme=dark] .calendar-activity-link{background:#382f47;color:#eadbfa;border-color:#5b4b6b}
-@media(max-width:1100px){.story-ribbon{grid-template-columns:72px minmax(180px,1fr) auto}.story-ribbon-rhythm{display:none}.student-pack-feature .activity-download-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){.story-ribbon{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:10px}.story-ribbon-art{width:54px;height:56px}.story-ribbon-art img{width:56px;height:56px}.story-ribbon-title span{font-size:9px}.story-ribbon-title b{font-size:15px}.story-ribbon-title small{font-size:11px}.story-ribbon-link{grid-column:1/-1;width:100%}.weekly-story-card .story-main{min-height:0;padding-right:78px}.weekly-story-card .story-main>img{top:0;right:0;width:76px;height:76px;transform:none}.student-pack-feature .activity-download-grid{grid-template-columns:1fr}.activity-download{grid-template-columns:86px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:8px}.activity-art{grid-column:1;grid-row:1/3;height:90px}.activity-art img{height:88px}.activity-download>div:nth-child(2){grid-column:2;grid-row:1;min-height:0}.activity-download .download-group{grid-column:2;grid-row:2}.activity-download .pdf-open{font-size:10px}}
+@media(max-width:1100px){.story-ribbon{grid-template-columns:72px minmax(180px,1fr) auto}.story-ribbon-rhythm{display:none}}
+@media(max-width:700px){.story-ribbon{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:10px}.story-ribbon-art{width:54px;height:56px}.story-ribbon-art img{width:56px;height:56px}.story-ribbon-title span{font-size:9px}.story-ribbon-title b{font-size:15px}.story-ribbon-title small{font-size:11px}.story-ribbon-link{grid-column:1/-1;width:100%}.weekly-story-card .story-main{min-height:0;padding-right:78px}.weekly-story-card .story-main>img{top:0;right:0;width:76px;height:76px;transform:none}}
 @media(prefers-reduced-motion:reduce){.student-pack-preview figure{transition:none}}
 
 /* Keep the practice block useful without making it look like an optional badge. */
@@ -333,3 +306,5 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 :root[data-theme=dark] .workspace-finish{background:var(--surface);border-color:var(--line);border-left-color:#d9ad55}
 :root[data-theme=dark] .workspace-finish>span{background:#51452c}
 :root[data-theme=dark] .workspace-finish p b{color:var(--ink)}
+
+@media(max-width:850px){.student-pack-feature{grid-template-columns:1fr}.student-pack-actions{grid-column:1}}
