@@ -10,7 +10,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
-from PIL import Image
+from PIL import Image, ImageFilter, ImageOps, ImageChops
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 DATA=(ROOT/'dist/data.js').read_text()
@@ -36,9 +36,9 @@ else:
  pdfmetrics.registerFontAlias('KidPrint','Helvetica')
  pdfmetrics.registerFontAlias('KidPrint-Bold','Helvetica-Bold')
 
-PUR=HexColor('#7145A3'); LAV=HexColor('#F1E9F8'); TEAL=HexColor('#188579'); MINT=HexColor('#E7F5F1')
-GOLD=HexColor('#E5A52F'); PALE=HexColor('#FFF3D9'); CORAL=HexColor('#E87759'); PINK=HexColor('#FCE9E4')
-BLUE=HexColor('#397EB8'); INK=HexColor('#293654'); MUTED=HexColor('#5D6B83'); LINE=HexColor('#D6DFE9'); PAPER=HexColor('#FFFEFB')
+PUR=HexColor('#111111'); LAV=HexColor('#F5F5F5'); TEAL=HexColor('#303030'); MINT=HexColor('#F1F1F1')
+GOLD=HexColor('#202020'); PALE=HexColor('#F8F8F8'); CORAL=HexColor('#444444'); PINK=HexColor('#EEEEEE')
+BLUE=HexColor('#262626'); INK=HexColor('#111111'); MUTED=HexColor('#353535'); LINE=HexColor('#333333'); PAPER=white
 STYLES={
  'body':ParagraphStyle('body',fontName='KidPrint',fontSize=15,leading=19,textColor=INK),
  'small':ParagraphStyle('small',fontName='KidPrint',fontSize=13,leading=16.5,textColor=MUTED),
@@ -151,16 +151,16 @@ def pill(c,text,x,y,fill,fg=INK,w=None):
  c.setFillColor(fill); c.roundRect(x,y,w,22,11,fill=1,stroke=0); c.setFillColor(fg); c.setFont('Helvetica-Bold',9); c.drawCentredString(x+w/2,y+7,text)
 def line_set(c,x,y,w,spacing=26):
  """Draw one roomy primary-writing line: solid baselines with a dashed midline."""
- c.setStrokeColor(HexColor('#9EABC0')); c.setLineWidth(1.1); c.line(x,y,x+w,y)
- c.setDash(3,3); c.setStrokeColor(HexColor('#BEC8D6')); c.line(x,y+spacing/2,x+w,y+spacing/2); c.setDash()
- c.setStrokeColor(HexColor('#9EABC0')); c.line(x,y+spacing,x+w,y+spacing)
+ c.setStrokeColor(HexColor('#222222')); c.setLineWidth(1.35); c.line(x,y,x+w,y)
+ c.setDash(3,3); c.setStrokeColor(HexColor('#666666')); c.line(x,y+spacing/2,x+w,y+spacing/2); c.setDash()
+ c.setStrokeColor(HexColor('#222222')); c.line(x,y+spacing,x+w,y+spacing)
 
 def writing_rows(c,x,y,w,count=2,spacing=26,gap=10):
  """Draw large primary-writing guides, stacked with a generous baseline-to-baseline gap."""
  for i in range(count): line_set(c,x,y+i*(spacing+gap),w,spacing)
 
 def response_box(c,x,y,w,h,label='DRAW, PLACE A PICTURE, OR WRITE'):
- rounded(c,x,y,w,h,HexColor('#FFFEFC'),LINE,9,dash=True,sw=1.1)
+ rounded(c,x,y,w,h,HexColor('#FEFEFE'),LINE,9,dash=True,sw=1.1)
  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',10); c.drawString(x+11,y+h-17,label)
  if h>=80:
   writing_rows(c,x+12,y+6,w-24,2,spacing=24,gap=7)
@@ -176,20 +176,43 @@ def draw_star(c,x,y,r):
 CURRENT_WEEK=1
 
 def prepare_art_tiles():
- """Check that every book has its prepared, isolated transparent art stickers."""
+ """Prepare black-ink coloring art for all weekly pictures and story cards."""
  missing=[ART_CROPS/f'week-{week}-tile-{idx}.png' for week in range(1,10) for idx in range(9) if not (ART_CROPS/f'week-{week}-tile-{idx}.png').is_file()]
  if not (ART_CROPS/'week-1-bow.png').is_file(): missing.append(ART_CROPS/'week-1-bow.png')
+ hero_dir=ROOT/'scripts/art/lineart'
+ hero_missing=[hero_dir/f'week-{week}-hero.png' for week in range(1,10) if not (hero_dir/f'week-{week}-hero.png').is_file()]
  if missing: raise FileNotFoundError(f'Missing {len(missing)} prepared student art tiles; run scripts/build_art_tiles.py')
+ if hero_missing: raise FileNotFoundError(f'Missing {len(hero_missing)} generated weekly coloring illustrations: {hero_missing}')
  PDF_ART.mkdir(parents=True,exist_ok=True)
+ def outline(source,dest):
+  with Image.open(source) as opened:
+   rgba=opened.convert('RGBA')
+   bounds=rgba.getchannel('A').getbbox()
+   if bounds: rgba=rgba.crop(bounds)
+   # Add clean margin around transparent crops before edge detection; this
+   # avoids turning the old square crop boundary into a printed picture frame.
+   pad=24; padded=Image.new('RGBA',(rgba.width+pad*2,rgba.height+pad*2),(0,0,0,0))
+   padded.alpha_composite(rgba,(pad,pad)); rgba=padded
+   paper=Image.new('RGBA',rgba.size,(255,255,255,255)); paper.alpha_composite(rgba)
+   gray=ImageOps.autocontrast(paper.convert('L').filter(ImageFilter.MedianFilter(5)).filter(ImageFilter.GaussianBlur(1.3)))
+   edges=ImageOps.autocontrast(gray.filter(ImageFilter.FIND_EDGES),cutoff=1)
+   ink=edges.point(lambda px:255 if px>=52 else 0)
+   # Add a clean silhouette edge while preserving the open coloring spaces.
+   alpha=ImageChops.lighter(ink,rgba.getchannel('A').filter(ImageFilter.FIND_EDGES).point(lambda px:255 if px>=20 else 0))
+   alpha=alpha.filter(ImageFilter.MaxFilter(3)).crop((pad-4,pad-4,pad+rgba.width-2*pad+4,pad+rgba.height-2*pad+4))
+   art=Image.new('RGBA',alpha.size,(0,0,0,0)); art.putalpha(alpha); art.save(dest,optimize=True)
  for src in list(ART_CROPS.glob('week-*-tile-*.png'))+[ART_CROPS/'week-1-bow.png']:
-  # A 256-colour transparent palette keeps the original 480px print detail
-  # while substantially reducing the embedded art in each PDF.
-  dst=PDF_ART/src.name
-  with Image.open(src) as opened:
-   opened.convert('RGBA').quantize(colors=256,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.FLOYDSTEINBERG).save(dst,optimize=True)
+  outline(src,PDF_ART/src.name)
+ for week in range(1,10):
+  with Image.open(hero_dir/f'week-{week}-hero.png') as opened:
+   art=opened.convert('RGBA')
+   if max(art.size)>1000: art.thumbnail((1000,1000),Image.Resampling.LANCZOS)
+   art.quantize(colors=8,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.NONE).save(PDF_ART/f'week-{week}-hero.png',optimize=True)
+
+HERO_TILE={1:0,2:5,3:3,4:0,5:1,6:0,7:4,8:0,9:1}
 
 def icon(c,kind,cx,cy,size,tile_idx=None):
- """Place the current book's painted story art wherever a student picture cue belongs."""
+ """Place monochrome, child-colorable story art wherever a picture cue belongs."""
  if tile_idx is None:
   cards=BOOKS[CURRENT_WEEK]['cards']
   tile_idx=next((i for i,(_,card_kind) in enumerate(cards) if card_kind==kind),None)
@@ -198,17 +221,24 @@ def icon(c,kind,cx,cy,size,tile_idx=None):
    fallback={'place':1,'question':2,'first':0,'next':1,'last':2,'problem':1,'helper':2,'result':3,'book':0,'star':4,'sun':2,'flower':1,'snow':4,'wind':2,'tree':1,'home':2,'apple':5,'child':0,'coat':3,'boots':4,'footprints':2}
    tile_idx=fallback.get(kind,0)
   tile_idx=min(tile_idx,8)
- path=PDF_ART/'week-1-bow.png' if CURRENT_WEEK==1 and kind=='bow' else PDF_ART/f'week-{CURRENT_WEEK}-tile-{tile_idx}.png'
+ path=PDF_ART/'week-1-bow.png' if CURRENT_WEEK==1 and kind=='bow' else (PDF_ART/f'week-{CURRENT_WEEK}-hero.png' if tile_idx==HERO_TILE[CURRENT_WEEK] else PDF_ART/f'week-{CURRENT_WEEK}-tile-{tile_idx}.png')
  c.drawImage(ImageReader(str(path)),cx-size/2,cy-size/2,size,size,mask='auto',preserveAspectRatio=True,anchor='c')
+
+def bubble_text(c,text,x,y,size=24,center=False):
+ """Outline playful display lettering so students can color the heading too."""
+ c.saveState(); c.setStrokeColor(INK); c.setFillColor(white); c.setLineWidth(1.2)
+ t=c.beginText(); t.setTextOrigin(x,y); t.setFont('KidPrint-Bold',size); t.setTextRenderMode(2)
+ if center: t.setTextOrigin(x-stringWidth(text,'KidPrint-Bold',size)/2,y)
+ t.textLine(text); c.drawText(t); c.restoreState()
 
 def header(c,w,lesson,title,accent):
  c.setFillColor(PAPER); c.rect(0,0,W,H,fill=1,stroke=0)
- c.setFillColor(accent); c.roundRect(38,H-66,5,29,2,fill=1,stroke=0)
+ c.setFillColor(INK); c.roundRect(38,H-66,5,29,2,fill=1,stroke=0)
  date=datetime.date.fromisoformat(lesson['date']).strftime('%A, %B %d').replace(' 0',' ') if lesson else 'STUDENT ACTIVITY'
- c.setFillColor(accent); c.setFont('Helvetica-Bold',10); c.drawString(52,H-48,f"WEEK {w['n']}  •  {date}")
+ c.setFillColor(INK); c.setFont('Helvetica-Bold',10); c.drawString(52,H-48,f"WEEK {w['n']}  •  {date}")
  c.setFillColor(INK); title_size=23
- while title_size>18 and stringWidth(title,'KidPrint-Bold',title_size)>W-145: title_size-=.5
- c.setFont('KidPrint-Bold',title_size); c.drawString(39,H-91,title)
+ while title_size>18 and stringWidth(title,'KidPrint-Bold',title_size)>W-155: title_size-=.5
+ bubble_text(c,title,39,H-94,title_size)
  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9); c.drawString(40,H-116,w['books3'].upper())
  icon(c,BOOKS[w['n']]['icon'],W-83,H-77,82)
 def footer(c,page,w):
@@ -264,9 +294,11 @@ def page_story_map(c,w,num,accent):
   c.setFillColor(acc); c.setFont('Helvetica-Bold',12); c.drawString(x+21,y+179,label)
   icon(c,kind,x+218,y+149,56)
   c.setFillColor(MUTED); c.setFont('Helvetica',9.5); c.drawString(x+16,y+145,prompt)
-  c.setStrokeColor(LINE); c.setDash(4,3); c.roundRect(x+14,y+52,232,80,9,fill=0,stroke=1); c.setDash()
-  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',8); c.drawString(x+22,y+119,'DRAW OR PLACE A PICTURE')
-  writing_rows(c,x+19,y+11,220,1,spacing=21,gap=5)
+  # Keep a useful picture space while turning the former empty lower half
+  # into two large primary-writing rows in every story-map panel.
+  c.setStrokeColor(LINE); c.setDash(4,3); c.roundRect(x+14,y+66,232,64,9,fill=0,stroke=1); c.setDash()
+  c.setFillColor(MUTED); c.setFont('KidPrint-Bold',9); c.drawString(x+22,y+116,'DRAW OR PLACE A PICTURE')
+  writing_rows(c,x+19,y+8,220,2,spacing=18,gap=4)
  footer(c,num,w)
 
 def page_picture_match(c,w,num,accent):
@@ -286,10 +318,10 @@ def page_picture_match(c,w,num,accent):
   c.setFillColor(INK); c.setFont('Helvetica-Bold',17); c.drawCentredString(476,y+32,dw.title())
   c.setFillColor(MUTED); c.setFont('Helvetica-Bold',8); c.drawCentredString(476,y+15,'WORD CARD')
   c.setStrokeColor(LINE); c.setLineWidth(.8); c.line(237,y+39,375,y+39)
- rounded(c,40,61,532,55,HexColor('#FFF8E7'),GOLD,12,sw=1.2)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',12); c.drawString(56,94,'MY STORY WORD')
- c.setFillColor(MUTED); c.setFont('Helvetica',10); c.drawString(178,94,'Choose one word. Copy it or draw what it means.')
- line_set(c,56,71,496,spacing=20)
+ rounded(c,40,52,532,126,HexColor('#F8F8F8'),GOLD,12,sw=1.2)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',13); c.drawString(56,158,'MY STORY WORD')
+ c.setFillColor(MUTED); c.setFont('KidPrint',11); c.drawString(56,139,'Choose a word. Copy it, draw it, or tell someone what it means.')
+ writing_rows(c,56,80,500,2,spacing=21,gap=4)
  footer(c,num,w)
 
 def make_maze(seed,rows=8,cols=8):
@@ -331,7 +363,7 @@ def page_favorite_scene(c,w,num,accent):
  c.setStrokeColor(LINE); c.setLineWidth(1.2); c.setDash(5,4); c.roundRect(58,283,496,233,11,fill=0,stroke=1); c.setDash()
  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9); c.drawCentredString(W/2,492,'DRAW A BIG PICTURE. ADD THE CHARACTERS AND DETAILS.')
  c.setFillColor(INK); c.setFont('Helvetica-Bold',13); c.drawString(48,211,'My favorite part is…')
- writing_rows(c,49,81,515,4,spacing=24,gap=7)
+ writing_rows(c,49,81,515,5,spacing=20,gap=4)
  footer(c,num,w)
 
 def page_character_sticks(c,w,num,accent):
@@ -359,8 +391,8 @@ def page_story_words(c,w,num,accent):
   c.setStrokeColor(LINE); c.setFillColor(white); c.roundRect(250,y+22,35,37,7,fill=1,stroke=1)
   c.setFillColor(acc); c.setFont('Helvetica-Bold',20); c.drawCentredString(267.5,y+31,word[0])
   c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9); c.drawString(302,y+51,'TRACE / COPY')
-  c.setFillColor(HexColor('#AAB4C3')); c.setFont('Helvetica-Bold',18); c.drawString(302,y+24,word.title())
- rounded(c,40,53,532,46,HexColor('#FFF8E7'),GOLD,10,sw=1)
+  c.setFillColor(HexColor('#B3B3B3')); c.setFont('Helvetica-Bold',18); c.drawString(302,y+24,word.title())
+ rounded(c,40,53,532,46,HexColor('#F8F8F8'),GOLD,10,sw=1)
  c.setFillColor(INK); c.setFont('Helvetica-Bold',11); c.drawString(56,78,'I can use this word to tell…')
  line_set(c,234,60,319,spacing=20)
  footer(c,num,w)
@@ -384,25 +416,28 @@ def page_story_cloze(c,w,num,accent):
 
 def page_picture_pattern(c,w,num,accent):
  header(c,w,None,'Finish the picture pattern',accent)
- para(c,'Look at the story pictures. What comes next? Choose a picture from the two choices.',40,635,W-80,'body',34)
- cards=BOOKS[w['n']]['cards']; patterns=[[0,1,0,1,None],[0,0,1,0,0,None],[0,1,2,0,1,None],[1,2,1,2,None]]
+ para(c,'Look at the story pictures. Choose what comes next, then make a pattern of your own.',40,635,W-80,'body',34)
+ name_date(c,585)
+ cards=BOOKS[w['n']]['cards']; patterns=[[0,1,0,1,0,None],[0,0,1,0,0,None],[0,1,2,0,1,None]]
  for r,pattern in enumerate(patterns):
-  y=440-r*96; acc=[PUR,TEAL,GOLD,CORAL][r]; fill=[LAV,MINT,PALE,PINK][r]
-  rounded(c,40,y,532,79,white,acc,12,sw=1.15)
-  for j,idx in enumerate(pattern):
-   x=50+j*48
-   rounded(c,x,y+13,43,52,fill if idx is not None else white,acc,8,dash=(idx is None),sw=1)
+  y=432-r*126; rounded(c,40,y,532,105,white,INK,12,sw=1.3)
+  c.setFillColor(INK); c.setFont('KidPrint-Bold',10); c.drawString(53,y+86,f'PATTERN {r+1}  •  WHAT COMES NEXT?')
+  for j,idx in enumerate(pattern[:6]):
+   x=51+j*55; rounded(c,x,y+13,50,62,white,INK,8,dash=(idx is None),sw=1)
    if idx is None:
-    c.setFillColor(acc); c.setFont('Helvetica-Bold',22); c.drawCentredString(x+21.5,y+28,'?')
+    bubble_text(c,'?',x+25,y+32,19,center=True)
    else:
-    icon(c,cards[idx%len(cards)][1],x+21.5,y+39,38,tile_idx=idx)
-  answers=[0,1,2,1]; choices=(answers[r],(answers[r]+1)%len(cards))
+    icon(c,cards[idx%len(cards)][1],x+25,y+44,41,tile_idx=idx)
+  choices=[(0,1),(1,2),(2,0)][r]
   for j,idx in enumerate(choices):
-   x=369+j*94; rounded(c,x,y+8,86,64,fill,acc,9,sw=1)
-   c.setFillColor(acc); c.circle(x+14,y+58,8,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',7.5); c.drawCentredString(x+14,y+55,'AB'[j])
-   icon(c,cards[idx%len(cards)][1],x+49,y+39,47,tile_idx=idx)
- rounded(c,40,64,532,44,HexColor('#FFF8E7'),GOLD,10,sw=1)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',10.5); c.drawCentredString(W/2,79,'SAY IT • POINT TO IT • CIRCLE A OR B')
+   x=390+j*82; rounded(c,x,y+10,73,68,white,INK,8,sw=1)
+   c.setFillColor(INK); c.setFont('KidPrint-Bold',8); c.drawCentredString(x+36.5,y+67,'A' if j==0 else 'B')
+   icon(c,cards[idx][1],x+36.5,y+39,47,tile_idx=idx)
+ rounded(c,40,55,532,103,white,INK,12,sw=1.3)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',11); c.drawString(53,137,'MAKE YOUR OWN STORY PATTERN')
+ for j in range(5):
+  x=60+j*93; rounded(c,x,73,80,49,white,INK,7,dash=True,sw=1)
+ c.setFillColor(MUTED); c.setFont('KidPrint',8.5); c.drawRightString(550,61,'Draw the next picture. Tell your rule.')
  footer(c,num,w)
 
 def page_character_detective(c,w,num,accent):
@@ -410,14 +445,16 @@ def page_character_detective(c,w,num,accent):
  para(c,'Look at what a character does in the story. Use a picture clue, an action, or a feeling to tell about them.',40,635,W-80,'body',38)
  prompts=[('LOOKS LIKE','Find a picture clue.','first'),('SAYS OR DOES','Show one action.','helper'),('FEELS','How might the character feel?','question'),('CHANGES OR HELPS','What happens because of them?','result')]
  for i,(label,question,kind) in enumerate(prompts):
-  y=430-i*96; acc=[PUR,TEAL,GOLD,CORAL][i]; fill=[LAV,MINT,PALE,PINK][i]
-  rounded(c,40,y,532,82,white,acc,13,sw=1.25)
-  c.setFillColor(fill); c.roundRect(51,y+10,82,62,9,fill=1,stroke=0); icon(c,kind,92,y+41,55)
-  c.setFillColor(acc); c.setFont('Helvetica-Bold',11); c.drawString(145,y+55,label)
-  c.setFillColor(MUTED); c.setFont('Helvetica',9.5); c.drawString(145,y+36,question)
-  line_set(c,145,y+9,404,spacing=18)
- rounded(c,40,49,532,42,HexColor('#FFF8E7'),GOLD,10,sw=1)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',10.5); c.drawCentredString(W/2,64,'I CAN SHOW MY ANSWER WITH A PICTURE, WORD, SIGN, OR AAC.')
+  # Use almost the full page for student responses: each prompt has two
+  # generous primary-writing rows, with the picture cue kept beside the text.
+  y=460-i*122; acc=[PUR,TEAL,GOLD,CORAL][i]; fill=[LAV,MINT,PALE,PINK][i]
+  rounded(c,40,y,532,112,white,acc,13,sw=1.25)
+  c.setFillColor(fill); c.roundRect(51,y+10,82,92,9,fill=1,stroke=0); icon(c,kind,92,y+56,76)
+  c.setFillColor(acc); c.setFont('KidPrint-Bold',13); c.drawString(145,y+91,label)
+  c.setFillColor(MUTED); c.setFont('KidPrint',11.5); c.drawString(145,y+74,question)
+  writing_rows(c,145,y+9,404,2,spacing=23,gap=4)
+ rounded(c,40,49,532,34,HexColor('#F8F8F8'),GOLD,10,sw=1)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',9.5); c.drawCentredString(W/2,61,'You can answer with a picture, a word, a sign, or AAC.')
  footer(c,num,w)
 
 def page_picture_puzzle(c,w,num,accent):
@@ -444,8 +481,8 @@ def page_cover_creator(c,w,num,accent):
  icon(c,BOOKS[w['n']]['icon'],W-113,y+bh-43,46)
  c.setStrokeColor(LINE); c.setDash(5,4); c.roundRect(x+22,y+97,bw-44,bh-184,12,fill=0,stroke=1); c.setDash()
  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9); c.drawCentredString(W/2,y+bh-81,'DRAW A SCENE THAT MAKES SOMEONE WANT TO READ')
- c.setFillColor(INK); c.setFont('Helvetica-Bold',11); c.drawString(x+25,y+66,'MY COVER SHOWS…')
- writing_rows(c,x+25,y+18,bw-50,1,spacing=22,gap=5)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawString(x+25,y+76,'MY COVER SHOWS…')
+ writing_rows(c,x+25,y+14,bw-50,2,spacing=22,gap=5)
  footer(c,num,w)
 
 def page_bme(c,w,l,num,accent):
@@ -481,7 +518,7 @@ def page_info(c,w,l,num,accent,kind):
 def page_season(c,w,l,num,accent,compare=False):
  header(c,w,l,'Compare the seasons' if compare else 'A tree changes through the year',accent)
  para(c,'Look at the season pictures. Draw what changes. Find a detail in the book.',40,635,W-80,'body',30)
- seasons=[('SPRING','flower',PINK,CORAL),('SUMMER','sun',PALE,GOLD),('FALL','leaf',MINT,TEAL),('WINTER','snow',HexColor('#E8F1F9'),BLUE)]
+ seasons=[('SPRING','flower',PINK,CORAL),('SUMMER','sun',PALE,GOLD),('FALL','leaf',MINT,TEAL),('WINTER','snow',HexColor('#F0F0F0'),BLUE)]
  for i,(lab,k,fill,acc) in enumerate(seasons):
   col=i%2; row=i//2; x=40+col*272; y=354-row*250
   rounded(c,x,y,260,235,white,acc,15,sw=1.25); pill(c,lab,x+14,y+200,fill,acc,105); icon(c,k,x+221,y+204,60)
@@ -504,11 +541,116 @@ def page_friday(c,w,l,num,accent,informational=False):
   response_box(c,57,y+12,497,84,'DRAW, PLACE A PICTURE, OR WRITE YOUR ANSWER')
  footer(c,num,w)
 
+def name_date(c,y):
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12)
+ c.drawString(43,y,'Name:'); line_set(c,85,y-4,205,spacing=22)
+ c.drawString(340,y,'Date:'); line_set(c,381,y-4,185,spacing=22)
+
+def page_math_facts_chart(c,w,num,accent):
+ """One full-page, black-ink worksheet for within-20 facts and chart strategies."""
+ header(c,w,None,'Add and subtract within 20',accent)
+ para(c,'Use the 100 chart to count on and back. Do not regroup or borrow.',40,635,W-80,'body',30)
+ name_date(c,585)
+ story_math={
+  1:(["Add 3 helper cards to 12 broom seats.","Put 5 stars beside 14 witch pictures.","Place 2 more friends with 16 story cards.","Add 7 picture clues to a set of 11."],["Take 6 helper cards from a set of 18.","Move 4 passengers from 17 broom seats.","Remove 5 stars from 19 story cards.","Take 3 picture clues from a set of 15."]),
+  2:(["Add 3 helpers to 12 pumpkin counters.","Place 5 seeds with 14 pumpkin pictures.","Add 2 helpers to a set of 16.","Add 7 leaves to 11 pumpkin pictures."],["Take 6 helpers from a set of 18.","Move 4 counters from 17 pumpkin seeds.","Remove 5 helpers from 19 picture cards.","Take 3 seeds from a set of 15."]),
+  3:(["Add 3 spoons to 12 soup spoons.","Place 5 scoops with 14 soup bowls.","Add 2 friends to a set of 16.","Add 7 picture ingredients to 11."],["Take 6 spoons from a set of 18.","Move 4 bowls from a set of 17.","Remove 5 picture ingredients from 19.","Take 3 friends from a group of 15."]),
+  4:(["Add 3 leaf cards to 12 Leaf Man shapes.","Put 5 leaves beside 14 field pictures.","Add 2 leaf shapes to a set of 16.","Add 7 birds to 11 story pictures."],["Take 6 leaves from a set of 18.","Move 4 leaf shapes from 17 cards.","Remove 5 field pictures from a set of 19.","Take 3 birds from a set of 15."]),
+  5:(["Find 3 more leaves after collecting 12.","Add 5 leaf cards to a set of 14.","Place 2 more leaves beside 16.","Add 7 woodland picture cards to 11."],["Take 6 leaves from a set of 18.","Put 4 leaf cards aside from 17.","Remove 5 woodland pictures from 19.","Take 3 leaves from a set of 15."]),
+  6:(["Add 3 leaves to Fletcher’s set of 12.","Put 5 leaf cards with 14 tree pictures.","Add 2 falling leaves to a set of 16.","Add 7 story leaves to a group of 11."],["Take 6 leaves from a set of 18.","Move 4 leaves from Fletcher’s set of 17.","Remove 5 tree pictures from 19.","Take 3 leaf cards from a set of 15."]),
+  7:(["Add 3 apples to a tree with 12.","Place 5 leaves with 14 apple pictures.","Add 2 apples to a set of 16.","Add 7 season cards to 11."],["Take 6 apples from a set of 18.","Move 4 leaves from 17 tree cards.","Remove 5 apples from a set of 19.","Take 3 season cards from a set of 15."]),
+  8:(["Add 3 penguins to a group of 12.","Put 5 snowflakes beside 14 penguin pictures.","Add 2 footprints to a set of 16.","Add 7 winter picture cards to 11."],["Take 6 penguins from a group of 18.","Move 4 snowflakes from 17 cards.","Remove 5 footprints from a set of 19.","Take 3 winter cards from a set of 15."]),
+  9:(["Make 3 more snowballs after making 12.","Add 5 footprints to 14 snowy steps.","Place 2 more snowflakes beside 16.","Add 7 snow pictures to a set of 11."],["Take 6 snowballs from a set of 18.","Remove 4 footprints from 17 snowy steps.","Take 5 snowflakes from a set of 19.","Move 3 snow pictures from a set of 15."]),
+ }
+ add=[(eq,ctx) for eq,ctx in zip(['12 + 3 = ____','14 + 5 = ____','16 + 2 = ____','11 + 7 = ____'],story_math[w['n']][0])]
+ sub=[(eq,ctx) for eq,ctx in zip(['18 - 6 = ____','17 - 4 = ____','19 - 5 = ____','15 - 3 = ____'],story_math[w['n']][1])]
+ for col,(title,items,kind) in enumerate([('ADD',add,'first'),('SUBTRACT',sub,'last')]):
+  x=40+col*272; y=375; width=260; height=193
+  rounded(c,x,y,width,height,white,INK,12,sw=1.5)
+  bubble_text(c,title,x+14,y+height-30,16)
+  icon(c,kind,x+width-27,y+height-24,35)
+  for i,(equation,context) in enumerate(items):
+   yy=y+height-60-i*33
+   c.setFillColor(INK); c.setFont('KidPrint-Bold',14); c.drawString(x+14,yy,equation)
+   c.setFillColor(MUTED); c.setFont('KidPrint',10.5); c.drawString(x+14,yy-13,context)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawString(42,354,'Use the chart: 12 to 15 for +3; 17 back to 13 for -4.')
+ x0=42; y0=77; cw=52.5; ch=26.2
+ c.setLineWidth(.8); c.setStrokeColor(INK)
+ for n in range(1,101):
+  col=(n-1)%10; row=(n-1)//10; x=x0+col*cw; y=y0+(9-row)*ch
+  c.rect(x,y,cw,ch,fill=0,stroke=1); c.setFillColor(INK); c.setFont('KidPrint-Bold',8.7); c.drawCentredString(x+cw/2,y+8.5,str(n))
+ # Model the two chart moves with large clear circles and directional arrows.
+ def chart_center(n):
+  col=(n-1)%10; row=(n-1)//10
+  return x0+col*cw+cw/2,y0+(9-row)*ch+ch/2
+ for start,end in [(12,15),(17,13)]:
+  sx,sy=chart_center(start); ex,ey=chart_center(end)
+  c.setLineWidth(2.1); c.setStrokeColor(INK)
+  offset=6 if start<end else -6
+  sy_path=sy+offset; ey_path=ey+offset
+  c.setDash(2,2); c.line(sx,sy_path,ex,ey_path); c.setDash()
+  angle=math.atan2(ey_path-sy_path,ex-sx); head=6
+  for turn in (-.72,.72):
+   c.line(ex,ey_path,ex-head*math.cos(angle+turn),ey_path-head*math.sin(angle+turn))
+  c.circle(sx,sy,10,fill=0,stroke=1); c.circle(ex,ey,10,fill=0,stroke=1)
+ c.setFillColor(MUTED); c.setFont('KidPrint',9.5); c.drawString(43,60,'Circle each start and finish. Match the paths to the facts above.')
+ footer(c,num,w)
+
+def page_math_place_compare(c,w,num,accent):
+ """An example-style four-part place-value, comparison, and ordering sheet."""
+ header(c,w,None,'Build numbers and compare',accent)
+ para(c,'Compare numbers. Name the place value. Put each set in order.',40,635,W-80,'body',30)
+ name_date(c,585)
+ panels=[
+  ('COMPARE THE NUMBERS','Write >, <, or = in each circle.',0),
+  ('PLACE VALUE','Write the place of the marked digit.',1),
+  ('ORDER THE NUMBERS','Write each row from least to greatest.',2),
+  ('NUMBER CHALLENGE','Compare. Then show one answer with a drawing.',3)
+ ]
+ # Keep a clear gap between Name/Date and the first activity panels, while
+ # still using the lower half of the sheet for hands-on number work.
+ rects=[(40,322),(312,322),(40,65),(312,65)]
+ for idx,((title,sub,kind),(x,y)) in enumerate(zip(panels,rects)):
+  width=260; height=235
+  rounded(c,x,y,width,height,white,INK,13,sw=1.5)
+  c.setFillColor(HexColor('#F0F0F0')); c.roundRect(x+8,y+height-49,width-16,39,9,fill=1,stroke=1)
+  bubble_text(c,title,x+16,y+height-36,12)
+  c.setFillColor(MUTED); c.setFont('KidPrint',10.2); c.drawString(x+14,y+height-62,sub)
+  if kind==0:
+   pairs=[('34','27'),('56','56'),('82','79'),('63','90'),('15','18')]
+   for i,(a,b) in enumerate(pairs):
+    yy=y+height-92-i*31
+    c.setFont('KidPrint-Bold',14); c.setFillColor(INK); c.drawString(x+22,yy,a)
+    c.circle(x+130,yy+5,12,fill=0,stroke=1)
+    c.drawRightString(x+width-20,yy,b)
+  elif kind==1:
+   # The line under one digit identifies the place to name.
+   rows=[('427',0,'hundreds / tens / ones'),('815',1,'hundreds / tens / ones'),('306',1,'hundreds / tens / ones'),('980',1,'hundreds / tens / ones'),('562',0,'hundreds / tens / ones')]
+   for i,(number,digit,_labels) in enumerate(rows):
+    yy=y+height-91-i*31; c.setFillColor(INK); c.setFont('KidPrint-Bold',14); c.drawString(x+18,yy,number)
+    start=x+20+digit*8.3; c.setLineWidth(1.5); c.line(start,yy-2,start+8,yy-2)
+    c.setFont('KidPrint',10); c.setFillColor(MUTED); c.drawString(x+76,yy,'This digit is in the:')
+    c.setStrokeColor(INK); c.line(x+185,yy-2,x+width-14,yy-2)
+  elif kind==2:
+   rows=[('38, 12, 25','___ , ___ , ___'),('71, 64, 90','___ , ___ , ___'),('106, 98, 114','___ , ___ , ___'),('205, 187, 215','___ , ___ , ___')]
+   for i,(nums,spaces) in enumerate(rows):
+    yy=y+height-95-i*38
+    c.setFillColor(INK); c.setFont('KidPrint-Bold',11); c.drawString(x+15,yy,nums)
+    c.setFont('KidPrint',11); c.drawString(x+15,yy-18,spaces)
+  else:
+   rows=[('125','152'),('207','199'),('340','304'),('888','818')]
+   for i,(a,b) in enumerate(rows):
+    yy=y+height-94-i*34
+    c.setFillColor(INK); c.setFont('KidPrint-Bold',13); c.drawString(x+24,yy,a)
+    c.circle(x+130,yy+4,11,fill=0,stroke=1); c.drawRightString(x+width-22,yy,b)
+   c.setFillColor(MUTED); c.setFont('KidPrint',9.3); c.drawString(x+15,y+12,'Choose one pair. Draw tens and ones or hundreds.')
+ footer(c,num,w)
+
 def page_craft(c,w,num,accent):
  title,prompt,steps=CRAFTS[w['n']]
  header(c,w,None,title,accent)
  para(c,prompt,40,635,W-80,'body',42)
- rounded(c,40,218,532,354,HexColor('#FFF9EC'),GOLD,17,sw=1.6)
+ rounded(c,40,218,532,354,HexColor('#F9F9F9'),GOLD,17,sw=1.6)
  c.setFillColor(PALE); c.roundRect(52,531,508,28,10,fill=1,stroke=0)
  c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawCentredString(W/2,539,'STORY-MAKING MAT')
  for i,label in enumerate(steps):
@@ -518,7 +660,9 @@ def page_craft(c,w,num,accent):
  # Make the student page a usable cut-and-place activity instead of a blank
  # craft-planning form. The shared story art is the anchor for every book.
  if w['n']==1:
-  draw_model(c,'broom',300,366,216,4)
+  # Use the recognizable, original coloring-page witch-and-helpers art here;
+  # the earlier vector broom looked like a loose collection of strokes.
+  icon(c,BOOKS[1]['icon'],202,365,196)
   seats=[(293,355),(324,375),(355,395)]
   for i,(sx,sy) in enumerate(seats,1):
    c.setFillColor(white); c.setStrokeColor(PUR); c.setLineWidth(1.7); c.setDash(4,3); c.circle(sx,sy,19,fill=1,stroke=1); c.setDash()
@@ -544,7 +688,7 @@ def page_craft(c,w,num,accent):
          6:[(188,350),(306,390),(424,350)],7:[(176,342),(436,342),(176,273),(436,273)],
          8:[(180,340),(432,340),(306,270)],9:[(170,330),(306,330),(442,330)]}[w['n']]
   for i,(sx,sy) in enumerate(slots,1):
-   c.setFillColor(HexColor('#FFFEFC')); c.setStrokeColor([PUR,TEAL,GOLD,CORAL][(i-1)%4]); c.setLineWidth(1.5); c.setDash(4,3); c.circle(sx,sy,22,fill=1,stroke=1); c.setDash()
+   c.setFillColor(HexColor('#FEFEFE')); c.setStrokeColor([PUR,TEAL,GOLD,CORAL][(i-1)%4]); c.setLineWidth(1.5); c.setDash(4,3); c.circle(sx,sy,22,fill=1,stroke=1); c.setDash()
    c.setFillColor([PUR,TEAL,GOLD,CORAL][(i-1)%4]); c.setFont('KidPrint-Bold',10); c.drawCentredString(sx,sy-4,str(i))
   c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9); c.drawCentredString(306,250,'GLUE A STORY PICTURE IN EACH NUMBERED SPOT')
  # Four large matching cut-outs make this page ready to use.
@@ -559,24 +703,28 @@ def page_craft(c,w,num,accent):
 
 def page_pack_cover(c,w,num,accent):
  book=w['books3']; theme=w.get('theme','Read, notice, and tell what happens.')
- c.setFillColor(PAPER); c.rect(0,0,W,H,fill=1,stroke=0)
- c.setFillColor(accent); c.roundRect(0,H-162,W,162,0,fill=1,stroke=0)
- c.setFillColor(white); c.setFont('Helvetica-Bold',11); c.drawString(44,H-48,f"WEEK {w['n']}  •  STORY ACTIVITY BOOK")
- para(c,book,44,H-69,430,'display',66)
- c.setFillColor(white); c.setFont('Helvetica',15); c.drawString(46,H-142,'Look · talk · play · make')
- icon(c,BOOKS[w['n']]['icon'],W-135,H-138,165)
- rounded(c,42,430,528,92,HexColor('#FFF8E7'),GOLD,15,sw=1.5)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',14); c.drawString(61,489,'THIS WEEK’S STORY IDEA')
- para(c,theme,61,470,487,'body',54)
- items=[('STORY TALK',PUR,LAV),('WORD PLAY',TEAL,MINT),('COUNT & COLOR',GOLD,PALE),('DRAW & RETELL',CORAL,PINK)]
- for i,(label,col,fill) in enumerate(items):
-  x=43+(i%2)*270; y=337-(i//2)*82
-  rounded(c,x,y,255,63,fill,col,13,sw=1.2)
-  c.setFillColor(col); c.circle(x+29,y+31,16,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',11); c.drawCentredString(x+29,y+27,str(i+1))
-  c.setFillColor(INK); c.setFont('Helvetica-Bold',13); c.drawString(x+57,y+26,label)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',14); c.drawString(45,145,'THIS ACTIVITY BOOK BELONGS TO')
- line_set(c,45,92,500,spacing=30)
- c.setFillColor(MUTED); c.setFont('Helvetica',10); c.drawRightString(545,55,'Point, tell, draw, match, or write your answer.')
+ c.setFillColor(white); c.rect(0,0,W,H,fill=1,stroke=0)
+ name_date(c,H-47)
+ c.setFillColor(INK); c.setFont('Helvetica-Bold',10); c.drawString(44,H-79,f"WEEK {w['n']}  •  STORY ACTIVITY BOOK")
+ title_size=34
+ while title_size>22 and stringWidth(book,'KidPrint-Bold',title_size)>360:title_size-=1
+ bubble_text(c,book,43,H-126,title_size)
+ icon(c,BOOKS[w['n']]['icon'],W-119,H-212,166)
+ rounded(c,40,475,378,112,white,INK,14,sw=1.5)
+ c.setFillColor(INK); c.setFont('Helvetica-Bold',10); c.drawString(55,566,'THIS WEEK’S STORY IDEA')
+ para(c,theme,55,545,346,'body',68)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',13); c.drawString(43,443,'READ IT  •  TALK ABOUT IT  •  THEN CREATE')
+ items=[('STORY TALK','Who? What? Where?',0),('WORD PLAY','Find a story word.',1),('MATH MISSION','Solve and compare.',2),('MAKE & RETELL','Build the events.',3)]
+ for i,(label,caption,tile) in enumerate(items):
+  x=42+i*136; y=235; width=126; height=184
+  rounded(c,x,y,width,height,white,INK,12,sw=1.4)
+  icon(c,BOOKS[w['n']]['icon'],x+width/2,y+132,81,tile_idx=HERO_TILE[w['n']] if i in (0,3) else min(tile+1,8))
+  bubble_text(c,label,x+width/2,y+65,11,center=True)
+  c.setFillColor(MUTED); c.setFont('KidPrint',10); c.drawCentredString(x+width/2,y+43,caption)
+  c.setDash(4,3); c.line(x+13,y+20,x+width-13,y+20); c.setDash()
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',11); c.drawString(43,178,'MY FAVORITE PART OF THE BOOK:')
+ writing_rows(c,43,98,520,2,spacing=22,gap=5)
+ c.setFillColor(MUTED); c.setFont('KidPrint',9); c.drawString(44,84,'Color the pictures. Point, tell, cut, match, draw, and write.')
  footer(c,num,w)
 
 def page_word_detective(c,w,num,accent):
@@ -584,18 +732,19 @@ def page_word_detective(c,w,num,accent):
  para(c,'Look at each picture. Say or point to the word. Find its first letter, then trace or copy it.',40,635,W-80,'body',38)
  cards=BOOKS[w['n']]['cards'][:4]
  for i,(word,k) in enumerate(cards):
-  y=424-i*91; acc=[PUR,TEAL,GOLD,CORAL][i]
-  rounded(c,40,y,532,78,[LAV,MINT,PALE,PINK][i],acc,13,sw=1.25)
-  icon(c,k,83,y+40,57,tile_idx=i)
-  c.setFillColor(INK); c.setFont('Helvetica-Bold',17); c.drawString(127,y+48,word.title())
-  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',10); c.drawString(127,y+28,'FIRST LETTER')
-  c.setFillColor(white); c.setStrokeColor(LINE); c.roundRect(219,y+15,34,38,8,fill=1,stroke=1)
-  c.setFillColor(acc); c.setFont('Helvetica-Bold',22); c.drawCentredString(236,y+23,word[0])
-  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',10); c.drawString(275,y+49,'TRACE OR WRITE THE WORD')
-  line_set(c,275,y+17,280,spacing=24)
- rounded(c,40,66,532,63,white,HexColor('#D7CBE5'),12,sw=1)
- c.setFillColor(PUR); c.setFont('Helvetica-Bold',12); c.drawString(56,106,'MY FAVORITE BOOK WORD')
- line_set(c,220,77,330,spacing=24)
+  y=478-i*98; acc=[PUR,TEAL,GOLD,CORAL][i]
+  rounded(c,40,y,532,90,[LAV,MINT,PALE,PINK][i],acc,13,sw=1.25)
+  icon(c,k,83,y+45,64,tile_idx=i)
+  c.setFillColor(INK); c.setFont('KidPrint-Bold',16); c.drawString(127,y+63,word.title())
+  c.setFillColor(MUTED); c.setFont('KidPrint-Bold',10); c.drawString(127,y+42,'FIRST LETTER')
+  c.setFillColor(white); c.setStrokeColor(LINE); c.roundRect(219,y+20,34,40,8,fill=1,stroke=1)
+  c.setFillColor(acc); c.setFont('KidPrint-Bold',21); c.drawCentredString(236,y+29,word[0])
+  c.setFillColor(MUTED); c.setFont('KidPrint-Bold',10); c.drawString(275,y+71,'TRACE THE WORD, THEN COPY IT')
+  c.setFillColor(HexColor('#777777')); c.setFont('KidPrint-Bold',14); c.drawString(275,y+54,word.title())
+  writing_rows(c,275,y+6,280,2,spacing=18,gap=7)
+ rounded(c,40,55,532,114,white,HexColor('#CFCFCF'),12,sw=1)
+ c.setFillColor(PUR); c.setFont('KidPrint-Bold',13); c.drawString(56,146,'MY FAVORITE BOOK WORD')
+ writing_rows(c,56,64,500,2,spacing=22,gap=5)
  footer(c,num,w)
 
 def page_rhyme_match(c,w,num,accent):
@@ -603,7 +752,7 @@ def page_rhyme_match(c,w,num,accent):
  para(c,'Say the picture word. Circle the choice that rhymes. Point, say, or mark your answer.',40,635,W-80,'body',38)
  prompts=RHYMES[w['n']]
  for i,(target,rhyme,decoy) in enumerate(prompts):
-  y=385-i*125; acc=[PUR,TEAL,GOLD][i]; fill=[LAV,MINT,PALE][i]
+  y=465-i*132; acc=[PUR,TEAL,GOLD][i]; fill=[LAV,MINT,PALE][i]
   rounded(c,40,y,532,108,white,acc,14,sw=1.3)
   art_idx=RHYME_ART[w['n']][i]; art_kind=BOOKS[w['n']]['cards'][art_idx][1]
   icon(c,art_kind,92,y+56,66,tile_idx=art_idx)
@@ -611,12 +760,13 @@ def page_rhyme_match(c,w,num,accent):
   c.setFillColor(MUTED); c.setFont('Helvetica-Bold',10); c.drawString(141,y+49,'WHICH WORD RHYMES?')
   choices=[rhyme,decoy] if i%2==0 else [decoy,rhyme]
   for j,choice in enumerate(choices):
-   x=303+j*122; rounded(c,x,y+27,109,47,fill if j==0 else HexColor('#F4F7FB'),acc,11,sw=1)
+   x=303+j*122; rounded(c,x,y+27,109,47,fill if j==0 else HexColor('#F7F7F7'),acc,11,sw=1)
    c.setFillColor(INK); c.setFont('Helvetica-Bold',16); c.drawCentredString(x+54.5,y+43,choice.title())
   c.setFillColor(MUTED); c.setFont('Helvetica',9); c.drawString(142,y+12,'Say both words. Do they sound the same at the end?')
- rounded(c,40,70,532,57,HexColor('#FFF8E7'),GOLD,12,sw=1)
- c.setFillColor(INK); c.setFont('Helvetica-Bold',12); c.drawString(56,105,'MAKE A RHYME')
- para(c,'Draw or write one more word that rhymes with a book word.',160,111,395,'small',35)
+ rounded(c,40,52,532,133,HexColor('#F8F8F8'),GOLD,12,sw=1)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',14); c.drawString(56,163,'MAKE A RHYME')
+ para(c,'Draw or write another word that rhymes with one from the book.',56,150,500,'small',24)
+ writing_rows(c,56,58,500,3,spacing=18,gap=4)
  footer(c,num,w)
 
 def page_counting_center(c,w,num,accent):
@@ -625,7 +775,7 @@ def page_counting_center(c,w,num,accent):
  kind=BOOKS[w['n']]['icon']
  for i,count in enumerate([1,2,3,4,5]):
   y=482-i*82; acc=[PUR,TEAL,GOLD,CORAL,BLUE][i]
-  rounded(c,40,y,532,70,[LAV,MINT,PALE,PINK,HexColor('#E9F1F9')][i],acc,12,sw=1.1)
+  rounded(c,40,y,532,70,[LAV,MINT,PALE,PINK,HexColor('#F0F0F0')][i],acc,12,sw=1.1)
   c.setFillColor(acc); c.circle(72,y+35,17,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',14); c.drawCentredString(72,y+30,str(count))
   gap=64; start=122
   for j in range(count): icon(c,kind,start+j*gap,y+35,44,tile_idx=(j+i)%min(9,len(BOOKS[w['n']]['cards'])))
@@ -657,11 +807,11 @@ def page_color_code(c,w,num,accent):
 def draw_model(c,kind,cx,cy,size,step):
  """Draw an original, easy-to-copy four-step picture cue using vector shapes."""
  s=size/100; c.saveState(); c.translate(cx-size/2,cy-size/2); c.scale(s,s)
- c.setStrokeColor(INK); c.setFillColor(HexColor('#FFFDF8')); c.setLineWidth(3.2)
+ c.setStrokeColor(INK); c.setFillColor(HexColor('#FDFDFD')); c.setLineWidth(3.2)
  def line(x1,y1,x2,y2): c.line(x1,y1,x2,y2)
  def oval(x,y,ww,hh,fill=0): c.ellipse(x,y,x+ww,y+hh,fill=fill,stroke=1)
  if kind=='broom':
-  wood=HexColor('#8B5429'); shine=HexColor('#C58B4A'); bristle=HexColor('#E5B34E'); edge=HexColor('#A7662A')
+  wood=HexColor('#5D5D5D'); shine=HexColor('#939393'); bristle=HexColor('#B6B6B6'); edge=HexColor('#6F6F6F')
   if step>=1:
    c.setStrokeColor(wood); c.setLineWidth(8); line(35,44,91,80)
    c.setStrokeColor(shine); c.setLineWidth(1.6); line(38,45,89,78)
@@ -671,11 +821,11 @@ def draw_model(c,kind,cx,cy,size,step):
    # the handle; the profile stays clean when printed small or copied.
    p=c.beginPath(); p.moveTo(33,42); p.lineTo(41,47); p.lineTo(27,17); p.lineTo(22,7); p.lineTo(17,2); p.lineTo(12,7); p.lineTo(7,4); p.lineTo(4,12); p.lineTo(0,14); p.lineTo(2,23); p.lineTo(5,31); p.lineTo(13,36); p.lineTo(23,40); p.close(); c.drawPath(p,fill=1,stroke=1)
   if step>=3:
-   c.setStrokeColor(HexColor('#B8752B')); c.setLineWidth(1.15)
+   c.setStrokeColor(HexColor('#7E7E7E')); c.setLineWidth(1.15)
    for x1,y1,x2,y2 in [(2,17,35,44),(5,11,36,44),(11,6,36,44),(17,4,37,45),(4,26,34,43),(10,33,35,43),(17,38,37,45),(23,40,39,46)]: line(x1,y1,x2,y2)
-   c.setStrokeColor(HexColor('#6F421F')); c.setLineWidth(3.2); line(32,40,39,49)
+   c.setStrokeColor(HexColor('#494949')); c.setLineWidth(3.2); line(32,40,39,49)
   if step>=4:
-   c.setStrokeColor(HexColor('#D39B35')); c.setLineWidth(2); line(34,41,40,47); line(36,39,42,45)
+   c.setStrokeColor(HexColor('#A0A0A0')); c.setLineWidth(2); line(34,41,40,47); line(36,39,42,45)
    c.setFillColor(GOLD); draw_star(c,76,83,5); draw_star(c,86,69,3.5)
  elif kind=='pumpkin':
   if step>=1: oval(21,22,58,48)
@@ -712,7 +862,7 @@ def draw_model(c,kind,cx,cy,size,step):
  elif kind=='snowman':
   if step>=1: c.circle(50,20,12,fill=0,stroke=1)
   if step>=2: c.circle(50,44,17,fill=0,stroke=1); c.circle(50,75,12,fill=0,stroke=1)
-  if step>=3: c.setFillColor(GOLD); c.setStrokeColor(GOLD); p=c.beginPath(); p.moveTo(62,75); p.lineTo(78,71); p.lineTo(62,68); p.close(); c.drawPath(p,fill=1,stroke=0); c.setStrokeColor(INK); c.setFillColor(HexColor('#FFFDF8')); c.circle(45,78,1.6,fill=1,stroke=1); c.circle(55,78,1.6,fill=1,stroke=1)
+  if step>=3: c.setFillColor(GOLD); c.setStrokeColor(GOLD); p=c.beginPath(); p.moveTo(62,75); p.lineTo(78,71); p.lineTo(62,68); p.close(); c.drawPath(p,fill=1,stroke=0); c.setStrokeColor(INK); c.setFillColor(HexColor('#FDFDFD')); c.circle(45,78,1.6,fill=1,stroke=1); c.circle(55,78,1.6,fill=1,stroke=1)
   if step>=4: line(32,49,18,59); line(68,49,82,59); draw_star(c,20,84,5); draw_star(c,82,82,4)
  elif kind=='footprints':
   if step>=1: oval(36,20,11,21); oval(57,56,11,21)
@@ -726,20 +876,23 @@ def draw_model(c,kind,cx,cy,size,step):
 
 def page_directed_draw(c,w,num,accent):
  title,kind=DRAWING[w['n']]
- header(c,w,None,'Draw it step by step',accent)
- para(c,f'Look at the book picture. Follow the four drawing steps, then make your own big {title.lower()}.',40,635,W-80,'body',40)
- labels=(['DRAW THE HANDLE','ADD A BRISTLE FAN','TIE & TEXTURE','ADD A STAR & COLOR'] if kind=='broom' else ['START WITH A SHAPE','ADD THE MAIN PARTS','ADD BOOK DETAILS','FINISH & COLOR'])
- for i,label in enumerate(labels):
-  col=i%2; row=i//2; x=40+col*272; y=330-row*211
-  rounded(c,x,y,260,194,[LAV,MINT,PALE,PINK][i],[PUR,TEAL,GOLD,CORAL][i],14,sw=1.25)
-  c.setFillColor([PUR,TEAL,GOLD,CORAL][i]); c.setFont('Helvetica-Bold',10); c.drawString(x+13,y+173,f'STEP {i+1}')
-  c.setFillColor(INK); c.setFont('Helvetica-Bold',11); c.drawRightString(x+246,y+173,label)
-  draw_model(c,kind,x+130,y+105,140,i+1)
-  if i==3:
-   c.setStrokeColor(LINE); c.setDash(4,3); c.roundRect(x+15,y+8,230,26,8,fill=0,stroke=1); c.setDash()
-   c.setFillColor(MUTED); c.setFont('Helvetica',9); c.drawCentredString(x+130,y+16,'MY OWN DETAIL: __________________')
- rounded(c,40,80,532,34,HexColor('#FFF7E6'),GOLD,9,sw=1)
- c.setFillColor(INK); c.setFont('KidPrint-Bold',11); c.drawCentredString(W/2,92,'NEXT: MAKE YOUR OWN BIG PICTURE ON THE DRAW & WRITE PAGE')
+ header(c,w,None,'Look • draw • add details',accent)
+ para(c,f'Study the black-and-white {title.lower()} picture. Draw a big scene of your own, then tell what you added.',40,642,W-80,'body',42)
+ name_date(c,558)
+ # A clean two-part art area ends well above the response lines. The former
+ # third writing zone collided with the shared caption and left little usable
+ # room; one full-width primary-writing area now gives students three rows.
+ rounded(c,40,165,226,355,white,INK,14,sw=1.4)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawCentredString(153,496,'LOOK AT THE STORY ART')
+ icon(c,BOOKS[w['n']]['icon'],153,356,172)
+ c.setFillColor(MUTED); c.setFont('KidPrint-Bold',10); c.drawCentredString(153,244,'I NOTICE…')
+ writing_rows(c,65,177,176,2,spacing=20,gap=6)
+ rounded(c,286,165,286,355,white,INK,14,sw=1.4)
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawCentredString(429,496,'DRAW YOUR OWN BIG PICTURE')
+ c.setDash(5,4); c.roundRect(302,200,254,275,10,fill=0,stroke=1); c.setDash()
+ c.setFillColor(MUTED); c.setFont('KidPrint',9); c.drawCentredString(429,180,'Add a character, place, and story detail.')
+ c.setFillColor(INK); c.setFont('KidPrint-Bold',12); c.drawString(40,143,'MY PICTURE SHOWS…')
+ writing_rows(c,65,50,493,3,spacing=19,gap=4)
  footer(c,num,w)
 
 def page_retell_wheel(c,w,num,accent):
@@ -756,7 +909,7 @@ def page_retell_wheel(c,w,num,accent):
  c.setFillColor(PAPER); c.setStrokeColor(INK); c.circle(cx,cy,30,fill=1,stroke=1)
  c.setFillColor(INK); c.setFont('Helvetica-Bold',8); c.drawCentredString(cx,cy-2,'BOOK')
  c.setStrokeColor(PUR); c.setLineWidth(2); c.setDash(5,4); c.circle(cx,cy,r+8,fill=0,stroke=1); c.setDash()
- rounded(c,440,145,132,355,HexColor('#FBF7FF'),HexColor('#D8C8E8'),14,sw=1)
+ rounded(c,440,145,132,355,HexColor('#F8F8F8'),HexColor('#CECECE'),14,sw=1)
  c.setFillColor(PUR); c.setFont('Helvetica-Bold',12); c.drawCentredString(506,470,'SPINNER')
  for i,label in enumerate(labels):
   y=420-i*58; c.setFillColor(colors[i]); c.circle(465,y,13,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',11); c.drawCentredString(465,y-4,str(i+1)); c.setFillColor(INK); c.setFont('Helvetica-Bold',11); c.drawString(490,y-4,label.title())
@@ -790,8 +943,7 @@ prepare_art_tiles()
 for w in WEEKS:
  n=w['n']; CURRENT_WEEK=n; lessons=LESSONS_BY_WEEK[n]; book=w['books3']; assert book==w['books4'],f'Week {n}: shared books diverge'
  bookdata=BOOKS[n]; path=OUT/f'week-{n}-student-printables.pdf'
- core_path=ROOT/'work'/f'week-{n}-student-printables-core.pdf'; core_path.parent.mkdir(parents=True,exist_ok=True)
- pdf=canvas.Canvas(str(core_path),pagesize=letter)
+ pdf=canvas.Canvas(str(path),pagesize=letter)
  pdf.setTitle(f'Week {n} student printables • {book}'); pdf.setAuthor('Stacie Classroom')
  # Start directly with the student work; the weekly art and layout stay consistent.
  page_num=1
@@ -814,7 +966,7 @@ for w in WEEKS:
    row_count=math.ceil(len(cards)/2); ch=min(180,(ytop-82-(row_count-1)*gapy)/row_count)
    for i,(label,k) in enumerate(cards):
     col=i%2; row=i//2; x=x0+col*(cw+gapx); y=ytop-(row+1)*ch-row*gapy
-    rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#E8F1F9')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True,sw=1.25)
+    rounded(pdf,x,y,cw,ch,[LAV,MINT,PALE,PINK,HexColor('#F0F0F0')][i%5],[PUR,TEAL,GOLD,CORAL,BLUE][i%5],12,dash=True,sw=1.25)
     if ch>=150:
      icon(pdf,k,x+cw/2,y+ch*.61,min(105,ch*.56),tile_idx=min(i,8))
      pdf.setFillColor(INK); pdf.setFont('Helvetica-Bold',17); pdf.drawCentredString(x+cw/2,y+24,label[:24])
@@ -836,32 +988,19 @@ for w in WEEKS:
   (page_favorite_scene,'Draw and write'),
   (page_character_sticks,'Character story sticks'),
   (page_cover_creator,'Design a new cover'),
+  (page_word_detective,'Book-word detectives'),
+  (page_rhyme_match,'Rhyme and match'),
+  (page_directed_draw,'Look, draw, and add detail'),
+  (page_retell_wheel,'Cut, spin, and retell'),
  ]
+ # Math lives in this same all-in-one student packet. The first page practices
+ # non-regrouping / non-borrowing facts within 20 with a usable 100 chart; the
+ # second builds place value, comparison, and ordering fluency.
+ add_on_pages[4:4]=[(page_math_facts_chart,'Add and subtract within 20'),(page_math_place_compare,'Place value and compare')]
  if not any(day_kind(l,di,len(lessons),n)=='sequence' for di,l in enumerate(lessons)):
   add_on_pages.insert(1,(page_sequence,'Story sequence mat'))
  for builder,_label in add_on_pages:
   builder(pdf,w,page_num,ACCENTS[n-1]); pdf.showPage(); page_num+=1
  # The make-it page is student-facing and uses this book's own story cues.
  page_craft(pdf,w,page_num,ACCENTS[n-1]); pdf.showPage(); pdf.save()
- # Keep the resource choices available both as individual mini-packets and as
- # one convenient activity-center bundle. The combined student pack contains all.
- resources={
-  'literacy-centers': [page_word_detective,page_rhyme_match],
-  'math-centers': [page_counting_center,page_color_code],
-  'directed-drawing': [page_directed_draw],
-  'retell-wheel': [page_retell_wheel],
- }
- part_paths=[]
- for resource,builders in resources.items():
-  part=OUT/f'week-{n}-{resource}.pdf'; part_paths.append(part)
-  p=canvas.Canvas(str(part),pagesize=letter); p.setTitle(f'Week {n} {resource.replace("-"," ")} • {book}'); p.setAuthor('Stacie Classroom')
-  for i,builder in enumerate(builders,1): builder(p,w,i,ACCENTS[n-1]); p.showPage()
-  p.save()
- from pypdf import PdfReader, PdfWriter
- centers=OUT/f'week-{n}-activity-centers.pdf'; cw=PdfWriter()
- for part in part_paths: cw.append(str(part),outline_item=part.stem.replace('-', ' '))
- cw.write(str(centers)); cw.close()
- final=PdfWriter(); final.append(str(core_path),outline_item='Daily book activities')
- final.append(str(centers),outline_item='Optional activity centers')
- total=len(final.pages); final.write(str(path)); final.close(); core_path.unlink()
- print(path.name,book,f'{total} pages, plus 4 activity downloads')
+ print(path.name,book,f'{page_num} pages in one complete packet')
