@@ -8,6 +8,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib.utils import ImageReader
+from PIL import Image
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 DATA=(ROOT/'dist/data.js').read_text()
@@ -16,6 +17,7 @@ LESSONS=json.JSONDecoder().raw_decode(DATA.split('const LESSONS=',1)[1])[0]
 OUT=ROOT/'dist/resources'
 ART_RAW=ROOT/'scripts/art/raw'
 ART_CROPS=ROOT/'scripts/art/crops'
+PDF_ART=ROOT/'work/printable-art'
 W,H=letter
 
 PUR=HexColor('#7145A3'); LAV=HexColor('#F1E9F8'); TEAL=HexColor('#188579'); MINT=HexColor('#E7F5F1')
@@ -136,6 +138,13 @@ def prepare_art_tiles():
  missing=[ART_CROPS/f'week-{week}-tile-{idx}.png' for week in range(1,10) for idx in range(9) if not (ART_CROPS/f'week-{week}-tile-{idx}.png').is_file()]
  if not (ART_CROPS/'week-1-bow.png').is_file(): missing.append(ART_CROPS/'week-1-bow.png')
  if missing: raise FileNotFoundError(f'Missing {len(missing)} prepared student art tiles; run scripts/build_art_tiles.py')
+ PDF_ART.mkdir(parents=True,exist_ok=True)
+ for src in list(ART_CROPS.glob('week-*-tile-*.png'))+[ART_CROPS/'week-1-bow.png']:
+  # A 256-colour transparent palette keeps the original 480px print detail
+  # while substantially reducing the embedded art in each PDF.
+  dst=PDF_ART/src.name
+  with Image.open(src) as opened:
+   opened.convert('RGBA').quantize(colors=256,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.FLOYDSTEINBERG).save(dst,optimize=True)
 
 def icon(c,kind,cx,cy,size,tile_idx=None):
  """Place the current book's painted story art wherever a student picture cue belongs."""
@@ -147,7 +156,7 @@ def icon(c,kind,cx,cy,size,tile_idx=None):
    fallback={'place':1,'question':2,'first':0,'next':1,'last':2,'problem':1,'helper':2,'result':3,'book':0,'star':4,'sun':2,'flower':1,'snow':4,'wind':2,'tree':1,'home':2,'apple':5,'child':0,'coat':3,'boots':4,'footprints':2}
    tile_idx=fallback.get(kind,0)
   tile_idx=min(tile_idx,8)
- path=ART_CROPS/'week-1-bow.png' if CURRENT_WEEK==1 and kind=='bow' else ART_CROPS/f'week-{CURRENT_WEEK}-tile-{tile_idx}.png'
+ path=PDF_ART/'week-1-bow.png' if CURRENT_WEEK==1 and kind=='bow' else PDF_ART/f'week-{CURRENT_WEEK}-tile-{tile_idx}.png'
  c.drawImage(ImageReader(str(path)),cx-size/2,cy-size/2,size,size,mask='auto',preserveAspectRatio=True,anchor='c')
 
 def header(c,w,lesson,title,accent):
@@ -371,12 +380,19 @@ def draw_model(c,kind,cx,cy,size,step):
  def line(x1,y1,x2,y2): c.line(x1,y1,x2,y2)
  def oval(x,y,ww,hh,fill=0): c.ellipse(x,y,x+ww,y+hh,fill=fill,stroke=1)
  if kind=='broom':
-  if step>=1: line(16,30,85,72)
+  wood=HexColor('#8B5429'); shine=HexColor('#C58B4A'); bristle=HexColor('#E5B34E'); edge=HexColor('#A7662A')
+  if step>=1:
+   c.setStrokeColor(wood); c.setLineWidth(7); line(34,44,88,77)
+   c.setStrokeColor(shine); c.setLineWidth(1.4); line(37,45,86,76)
   if step>=2:
-   c.setLineWidth(2.4)
-   for dx in [12,20,28,36,44]: line(17+dx*.22,29-dx*.25,5+dx*.22,8-dx*.12)
-  if step>=3: oval(16,28,16,9)
-  if step>=4: draw_star(c,75,82,5); draw_star(c,86,87,3)
+   c.setFillColor(bristle); c.setStrokeColor(edge); c.setLineWidth(1.8)
+   p=c.beginPath(); p.moveTo(31,42); p.lineTo(39,47); p.lineTo(20,3); p.lineTo(16,0); p.lineTo(12,7); p.lineTo(8,3); p.lineTo(7,12); p.lineTo(2,9); p.lineTo(5,18); p.lineTo(0,18); p.lineTo(5,25); p.lineTo(1,31); p.lineTo(10,31); p.lineTo(12,39); p.lineTo(20,34); p.close(); c.drawPath(p,fill=1,stroke=1)
+  if step>=3:
+   c.setStrokeColor(HexColor('#B8752B')); c.setLineWidth(1.2)
+   for x1,y1,x2,y2 in [(5,19,34,44),(7,12,35,44),(13,5,35,44),(20,4,36,44),(4,27,33,43),(10,32,34,43),(16,36,36,44)]: line(x1,y1,x2,y2)
+  if step>=4:
+   c.setStrokeColor(HexColor('#D39B35')); c.setLineWidth(2); line(34,42,40,48); line(37,39,43,45)
+   c.setFillColor(GOLD); draw_star(c,77,82,5)
  elif kind=='pumpkin':
   if step>=1: oval(21,22,58,48)
   if step>=2:
@@ -428,7 +444,7 @@ def page_directed_draw(c,w,num,accent):
  title,kind=DRAWING[w['n']]
  header(c,w,LESSONS_BY_WEEK[w['n']][0],'Draw it step by step',accent)
  para(c,f'Look at the book picture. Follow the four drawing steps, then make your own big {title.lower()}.',40,635,W-80,'body',40)
- labels=['START WITH A SHAPE','ADD THE MAIN PARTS','ADD BOOK DETAILS','FINISH & COLOR']
+ labels=(['DRAW THE HANDLE','ADD A BRISTLE FAN','TIE & TEXTURE','ADD A STAR & COLOR'] if kind=='broom' else ['START WITH A SHAPE','ADD THE MAIN PARTS','ADD BOOK DETAILS','FINISH & COLOR'])
  for i,label in enumerate(labels):
   col=i%2; row=i//2; x=40+col*272; y=330-row*211
   rounded(c,x,y,260,194,[LAV,MINT,PALE,PINK][i],[PUR,TEAL,GOLD,CORAL][i],14,sw=1.25)
