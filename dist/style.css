@@ -156,3 +156,65 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 @media(max-width:1000px){.workspace-topgrid{grid-template-columns:1fr}.workspace-hero{padding:22px}.workspace-cover-link{width:94px;height:130px}.workspace-book-art{width:115px;height:115px}.book-icon{font-size:45px}.workspace-bridge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.workspace-hero{align-items:flex-start;padding:18px}.workspace-book-wrap{gap:3px}.workspace-cover-link{width:78px;height:108px}.workspace-book-wrap small{font-size:8px}.workspace-book-art{width:75px;height:75px}.book-icon{font-size:33px}.book-caption{bottom:8px;font-size:7px}.book-spark{top:4px;right:9px}.workspace-hero-chips{gap:5px}.workspace-hero-chips span{font-size:10px;padding:6px 8px}.workspace-topgrid{gap:10px}.workspace-panel{padding:14px}.read-rhythm{grid-template-columns:1fr}.read-rhythm>div{min-height:0}.visual-sequence{gap:5px}.workspace-section-title{display:block}.workspace-note{display:block;margin-top:5px}.workspace-subject-grid{grid-template-columns:1fr}.workspace-read-task{grid-template-columns:1fr;gap:4px}.mini-label{grid-row:auto}.mini-visuals{grid-column:auto}.workspace-grade-row{grid-template-columns:65px 1fr}.workspace-finish{align-items:flex-start}.finish-label{white-space:normal;text-align:center}.workspace-bottom{grid-template-columns:1fr}.workspace-downloads{grid-template-columns:1fr}.workspace-day-body{padding:10px}.workspace-day-head{padding:9px 11px}.workspace-bridges-head{display:block}.workspace-bridges-head p{margin-top:6px}.workspace-bridge-grid{grid-template-columns:1fr}.workspace-bridge{min-height:0}}
 @media print{.workspace-hero,.workspace-panel,.workspace-day,.workspace-bottom{break-inside:avoid;box-shadow:none}.workspace-hero,.workspace-subject,.workspace-day-head,.workspace-read-task,.workspace-finish,.workspace-bottom{print-color-adjust:exact;-webkit-print-color-adjust:exact}.workspace-open-lesson{display:none}}
+
+/* Dark mode: keep the same colorful teacher-friendly layout with readable surfaces. */
+:root[data-theme=dark]{color-scheme:dark;--paper:#171b26;--surface:#222938;--surface2:#2a3344;--ink:#edf1f8;--muted:#d0d8e5;--line:#414c60;--blue:#a7c5ff;--read:#d0a6f0;--math:#9bcaff;--science:#8ad9c5;--history:#f1bd7f;--glow:0 0 14px #0006}
+:root[data-theme=dark] body{background:linear-gradient(180deg,#1c2030 0,#171b26 360px,#141923 100%);color:var(--ink)}
+:root[data-theme=dark] h1,:root[data-theme=dark] h2,:root[data-theme=dark] h3,:root[data-theme=dark] h4,:root[data-theme=dark] header p,:root[data-theme=dark] .muted,:root[data-theme=dark] .eyebrow{color:var(--ink)}
+:root[data-theme=dark] .eyebrow{color:#c4a3ec}
+:root[data-theme=dark] header{border-color:var(--line)}
+:root[data-theme=dark] .header-actions .secondary,:root[data-theme=dark] .secondary,:root[data-theme=dark] .toolbar,:root[data-theme=dark] .calendar-options,:root[data-theme=dark] .day,:root[data-theme=dark] .card,:root[data-theme=dark] .maprow,:root[data-theme=dark] .teacher-note,:root[data-theme=dark] .planning-subject,:root[data-theme=dark] .workspace-panel,:root[data-theme=dark] .workspace-day,:root[data-theme=dark] .workspace-bridges{background:var(--surface);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .nav.active{background:#fff2ca;color:#392b61}
+:root[data-theme=dark] .toolbar-group select,:root[data-theme=dark] .planning-toolbar select,:root[data-theme=dark] .calendar-options select{background:var(--surface2);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .segmented,:root[data-theme=dark] .daytop,:root[data-theme=dark] .workspace-day-head{background:var(--surface2);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .segmented .selected{background:#69508c;color:#fff}
+:root[data-theme=dark] .off,:root[data-theme=dark] .workspace-materials p{background:#30394a;border-color:var(--line);color:var(--muted)}
+:root[data-theme=dark] .tag,:root[data-theme=dark] .download,:root[data-theme=dark] .step,:root[data-theme=dark] .routine div,:root[data-theme=dark] .status,:root[data-theme=dark] .branchpanel .grade,:root[data-theme=dark] .rotation,:root[data-theme=dark] .stage{background:var(--surface2);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .download span:last-child,:root[data-theme=dark] .workspace-downloads .download{background:#2a3444;color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .r{background:#44324f;color:#e0bcf5}:root[data-theme=dark] .m{background:#293f5c;color:#b8d9ff}:root[data-theme=dark] .s{background:#24483f;color:#a5e5d3}:root[data-theme=dark] .h{background:#4a3828;color:#ffd39a}
+:root[data-theme=dark] .badge{background:#34445e;color:#c5d7ff}
+:root[data-theme=dark] .assess{border-color:#83aaf0}
+:root[data-theme=dark] dialog,:root[data-theme=dark] .modalhead,:root[data-theme=dark] details,:root[data-theme=dark] .subjecttabs button{background:var(--surface);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] .subjecttabs .selected{background:#665083;color:#fff;border-color:#665083}
+:root[data-theme=dark] .close{background:var(--surface2);color:var(--ink)}
+:root[data-theme=dark] .weekly-overview .week-heading h2,:root[data-theme=dark] .workspace-section-title h2,:root[data-theme=dark] .workspace-panel-heading h3,:root[data-theme=dark] .workspace-bridges-head h3{color:var(--ink)}
+:root[data-theme=dark] .story-finish{background:#282a37;color:var(--ink);border-color:#4a4b5b}
+:root[data-theme=dark] .story-finish b,:root[data-theme=dark] .story-finish p{color:#f0e8d8}
+:root[data-theme=dark] .workspace-checklist p,:root[data-theme=dark] .workspace-checklist b,:root[data-theme=dark] .workspace-grade-row,:root[data-theme=dark] .workspace-grade-row b,:root[data-theme=dark] .workspace-note,:root[data-theme=dark] .workspace-bottom p,:root[data-theme=dark] .workspace-footnote,:root[data-theme=dark] .workspace-bridges-head p{color:var(--muted)}
+:root[data-theme=dark] .workspace-checklist>div>span{background:#4a3c2c;color:#f3d59d}
+:root[data-theme=dark] .read-rhythm>div,:root[data-theme=dark] .read-rhythm>div:nth-child(2),:root[data-theme=dark] .read-rhythm>div:nth-child(3){background:#303044}
+:root[data-theme=dark] .read-rhythm b,:root[data-theme=dark] .read-rhythm>div:nth-child(2) b,:root[data-theme=dark] .read-rhythm>div:nth-child(3) b{color:#e0c4ff}
+:root[data-theme=dark] .read-rhythm span,:root[data-theme=dark] .question-prompt p,:root[data-theme=dark] .mini-visuals span,:root[data-theme=dark] .workspace-read-task>p,:root[data-theme=dark] .workspace-finish p{color:var(--muted)}
+:root[data-theme=dark] .question-prompt,:root[data-theme=dark] .workspace-read-task{background:#302a36;border-color:#514655}
+:root[data-theme=dark] .question-prompt b,:root[data-theme=dark] .workspace-read-task>b{color:#f1d6aa}
+:root[data-theme=dark] .mini-visuals span,:root[data-theme=dark] .visual-sequence>span{background:var(--surface2);border-color:var(--line)}
+:root[data-theme=dark] .workspace-subject{--ws-bg:#302b3b;background:linear-gradient(150deg,var(--ws-bg),#252a38 80%);border-color:#4c4658}
+:root[data-theme=dark] .workspace-subject.math,:root[data-theme=dark] .workspace-bridge.math{--ws-bg:#26364a}
+:root[data-theme=dark] .workspace-subject.science,:root[data-theme=dark] .workspace-bridge.science{--ws-bg:#263b38}
+:root[data-theme=dark] .workspace-subject.social,:root[data-theme=dark] .workspace-bridge.social{--ws-bg:#403427}
+:root[data-theme=dark] .workspace-grade-row{border-color:#454d5e}
+:root[data-theme=dark] .workspace-finish{background:#393326;border-color:#71603a}
+:root[data-theme=dark] .workspace-finish p b,:root[data-theme=dark] .finish-label{color:#f0cf8c}
+:root[data-theme=dark] .finish-label{background:#51452c}
+:root[data-theme=dark] .workspace-bottom{background:#24352f;border-color:#3c5b4c}
+:root[data-theme=dark] .workspace-downloads .download{background:#293a34;color:#c5f0d4;border-color:#466250}
+:root[data-theme=dark] .workspace-bridge{--ws-bg:#302b3b}
+:root[data-theme=dark] .workspace-bridge span{color:var(--muted)}
+:root[data-theme=dark] .planning-toolbar .muted,:root[data-theme=dark] .section-note{color:var(--muted)}
+:root[data-theme=dark] .download-group .pdf-open{color:var(--blue)}
+:root[data-theme=dark] .planning-toolbar{padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink)}
+:root[data-theme=dark] .workspace-panel-heading p,:root[data-theme=dark] .workspace-day-head small,:root[data-theme=dark] .workspace-story-tag{color:var(--muted)}
+:root[data-theme=dark] .workspace-read-task .mini-label,:root[data-theme=dark] .visual-sequence,:root[data-theme=dark] .workspace-story-tag{color:#e1c6ff}
+
+/* Larger instructional type so weekly plans remain readable during teaching. */
+.workspace-panel-heading p,.workspace-checklist p,.workspace-materials p,.read-rhythm span,.question-prompt p,.visual-sequence,.workspace-connection,.workspace-grade-row,.workspace-finish p,.workspace-note,.workspace-bottom p,.workspace-footnote,.workspace-bridge span{font-size:16px;line-height:1.55}
+.workspace-checklist>div>span{width:30px;height:30px;font-size:14px}
+.read-rhythm b,.question-prompt b,.workspace-grade-row b,.finish-label{font-size:14px}
+.visual-sequence>span{font-size:17px}
+.workspace-kicker,.mini-label,.workspace-story-tag,.workspace-friday-tag{font-size:13px}
+.workspace-open-lesson{font-size:15px}
+.workspace-downloads .download{font-size:15px}
+.workspace-downloads .pdf-open{font-size:14px}
+.book-caption{font-size:10px}
+:root[data-theme=dark] .workspace-panel-heading p,:root[data-theme=dark] .workspace-day-head small,:root[data-theme=dark] .workspace-note,:root[data-theme=dark] .workspace-bottom p,:root[data-theme=dark] .workspace-footnote,:root[data-theme=dark] .workspace-bridge span,:root[data-theme=dark] .workspace-checklist p,:root[data-theme=dark] .workspace-materials p,:root[data-theme=dark] .workspace-grade-row,:root[data-theme=dark] .workspace-finish p,:root[data-theme=dark] .read-rhythm span,:root[data-theme=dark] .question-prompt p{color:var(--muted)}
+:root[data-theme=dark] .planning-toolbar label{color:var(--ink)}
