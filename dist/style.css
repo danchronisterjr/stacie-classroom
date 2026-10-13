@@ -86,3 +86,25 @@ header{padding-bottom:18px;border-bottom:1px solid #e8e2d8}h1{color:#272d47;font
 @media print{.rail{background:#fff;color:#111}.weekly-story-card,.planning-subject,.day,.daily-subject{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
 /* Keep the five-day view scannable; the full daily target stays one click away. */
 .daily-subject span.target-skill{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding:0!important;margin:3px 0 0!important;border:0!important;color:#35435a;font-size:13px;line-height:1.42}
+@media(max-width:760px){
+ .rail{position:relative;inset:auto;width:100%;height:auto;min-height:0;padding:13px 15px;box-shadow:0 6px 20px #30234b18}
+ .brand{margin:0 0 10px;font-size:16px}.brandmark{padding:3px 10px;font-size:21px}
+ nav{display:flex;flex-wrap:wrap;gap:5px}
+ .nav{flex:1 1 145px;justify-content:flex-start;padding:9px 10px;font-size:14px}
+ .nav span{font-size:13px}
+ .railfoot{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;margin-top:10px;padding-top:9px;font-size:12px}
+ .railfoot p{flex:1 1 230px;margin:0;font-size:12px}.railfoot .textbtn{margin:0;padding:4px 0;font-size:12px}
+ main{width:100%;max-width:none;margin:0;padding:18px 14px 40px}
+ header{align-items:flex-start;flex-wrap:wrap;gap:10px}header>div:first-child{min-width:0;flex:1 1 100%}.header-actions{display:flex;gap:8px}h1{font-size:30px}
+ .toolbar{flex-wrap:wrap}.toolbar-group{flex:1 1 100%;justify-content:space-between}.toolbar-group select{min-width:0;max-width:calc(100vw - 120px)}.segmented{width:100%;justify-content:space-between}.segmented button{flex:1;padding:8px 5px}
+ .calendar-options{align-items:flex-start;gap:8px;flex-wrap:wrap}.calendar-options p{flex:1 1 100%;margin:0}.calendar-options label{margin-left:auto}
+ .calgrid{grid-template-columns:1fr;gap:11px}.monthgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .day{min-height:0}.day-subjects{grid-template-columns:1fr 1fr}.daily-subject{font-size:13px;line-height:1.45}
+ .weekly-story-card{grid-template-columns:1fr}.story-finish{padding:14px}.week-heading{align-items:flex-start;gap:10px;flex-wrap:wrap}
+ .mapbranches{grid-template-columns:1fr}.cards,.downloads{grid-template-columns:1fr}
+ .modalbody{padding:18px 14px}.branchpanel{grid-template-columns:1fr}.lessonflow{grid-template-columns:64px minmax(0,1fr)}
+}
+@media(max-width:480px){
+ .day-subjects{grid-template-columns:1fr}.downloads{grid-template-columns:1fr}.week-heading h2{font-size:24px}.toolbar-group select{font-size:13px;padding:9px 8px}
+ .modalhead{padding:18px 16px}.lesson-heading{align-items:flex-start;gap:9px;flex-wrap:wrap}.lesson-heading h2{font-size:19px}
+}
