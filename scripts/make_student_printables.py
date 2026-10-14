@@ -163,9 +163,17 @@ def response_box(c,x,y,w,h,label='DRAW, PLACE A PICTURE, OR WRITE'):
  rounded(c,x,y,w,h,HexColor('#FEFEFE'),LINE,9,dash=True,sw=1.1)
  c.setFillColor(MUTED); c.setFont('Helvetica-Bold',9.5); c.drawString(x+11,y+h-15,label)
  if h>=90:
-  writing_rows(c,x+12,y+5,w-24,3,spacing=20,gap=2)
+  writing_rows(c,x+12,y+5,w-24,3,spacing=18,gap=1)
+ elif h>=75:
+  writing_rows(c,x+12,y+3,w-24,3,spacing=16,gap=0)
  elif h>=60:
-  writing_rows(c,x+12,y+6,w-24,2,spacing=20,gap=3)
+  # Keep the final handwriting guide below the response label on compact cards.
+  writing_rows(c,x+12,y+2,w-24,2,spacing=16,gap=2)
+
+def response_below_prompt(c,x,y,w,prompt_top,prompt_height,label):
+ """Fit a roomy response zone below wrapped prompt text, with visible clearance."""
+ h=max(0,min(98,prompt_top-prompt_height-8-y))
+ response_box(c,x,y,w,h,label)
 def draw_star(c,x,y,r):
  pts=[]
  for i in range(10):
@@ -269,8 +277,8 @@ def page_wh(c,w,l,num,accent):
   y=444-i*176; fill=[LAV,MINT,PALE][i]; acc=[PUR,TEAL,GOLD][i]
   rounded(c,40,y,532,164,white,acc,16,sw=1.4); icon(c,kind,93,y+87,83)
   c.setFillColor(acc); c.setFont('Helvetica-Bold',17); c.drawString(151,y+137,lab)
-  para(c,q,151,y+115,390,'body',42)
-  response_box(c,151,y+8,400,98,'DRAW A CLUE, PLACE A PICTURE, OR WRITE')
+  qh=para(c,q,151,y+115,390,'body',42)
+  response_below_prompt(c,151,y+4,400,y+115,qh,'DRAW A CLUE, PLACE A PICTURE, OR WRITE')
  footer(c,num,w)
 
 def page_sequence(c,w,num,accent):
@@ -502,28 +510,29 @@ def page_bme(c,w,l,num,accent):
  for i,(label,q,fill,acc) in enumerate([('BEGINNING','Who is here? Where does it start?',LAV,PUR),('MIDDLE','What happens? Who helps or what changes?',MINT,TEAL),('END','How does this part end?',PALE,GOLD)]):
   y=444-i*176; rounded(c,40,y,532,164,white,acc,15,sw=1.3)
   pill(c,label,55,y+132,fill,acc,134); icon(c,['first','helper','last'][i],520,y+141,48)
-  para(c,q,55,y+115,425,'body',40)
-  response_box(c,55,y+8,497,98,'DRAW THE SCENE, PLACE A CARD, OR WRITE WHAT HAPPENED')
+  qh=para(c,q,55,y+115,425,'body',40)
+  response_below_prompt(c,55,y+4,497,y+115,qh,'DRAW THE SCENE, PLACE A CARD, OR WRITE WHAT HAPPENED')
  footer(c,num,w)
 
 def page_cause(c,w,l,num,accent):
  header(c,w,l,'What happened because?',accent)
- para(c,'Look at the pages. Show the problem, what a character did, and what changed.',40,635,W-80,'body',30)
+ para(c,'Find the story problem, a character’s action, and what changes.',40,635,W-80,'body',30)
  for i,(lab,q,kind,fill,acc) in enumerate([('THE PROBLEM','What went wrong?','problem',PINK,CORAL),('A HELPER ACTED','What did someone do?','helper',MINT,TEAL),('THE RESULT','What happened after?','result',PALE,GOLD)]):
   y=444-i*176; rounded(c,40,y,532,164,white,acc,15,sw=1.3); pill(c,lab,55,y+132,fill,acc,150)
-  icon(c,kind,520,y+141,48); para(c,q,55,y+115,425,'body',40)
-  response_box(c,55,y+8,497,98,'DRAW THE BOOK CLUE, PLACE A PICTURE, OR WRITE')
+  icon(c,kind,520,y+141,48); qh=para(c,q,55,y+115,425,'body',40)
+  response_below_prompt(c,55,y+4,497,y+115,qh,'DRAW THE BOOK CLUE, PLACE A PICTURE, OR WRITE')
   if i<2:
    c.setFillColor(GOLD); pth=c.beginPath(); pth.moveTo(W/2-6,y-4); pth.lineTo(W/2+6,y-4); pth.lineTo(W/2,y-10); pth.close(); c.drawPath(pth,fill=1,stroke=0)
  footer(c,num,w)
 
 def page_info(c,w,l,num,accent,kind):
  header(c,w,l,'What does this book teach?',accent)
- para(c,'Look closely at the pictures and words. Find a detail that teaches you something.',40,635,W-80,'body',30)
+ para(c,'Find one picture or word detail that teaches you something.',40,635,W-80,'body',30)
  titles= [('TOPIC','What is this book mostly about?','book',LAV,PUR),('DETAIL','What do you learn on this page?','question',MINT,TEAL),('EVIDENCE','Show the picture or words that teach you.','star',PALE,GOLD)]
  for i,(lab,q,k,fill,acc) in enumerate(titles):
   y=444-i*176; rounded(c,40,y,532,164,white,acc,15,sw=1.3); icon(c,k,94,y+87,83); c.setFillColor(acc); c.setFont('Helvetica-Bold',17); c.drawString(151,y+137,lab)
-  para(c,q,151,y+115,390,'body',42); response_box(c,151,y+8,400,98,'DRAW A DETAIL, PLACE A PICTURE, OR WRITE')
+  qh=para(c,q,151,y+115,390,'body',42)
+  response_below_prompt(c,151,y+4,400,y+115,qh,'DRAW A DETAIL, PLACE A PICTURE, OR WRITE')
  footer(c,num,w)
 
 def page_season(c,w,l,num,accent,compare=False):
@@ -549,7 +558,7 @@ def page_friday(c,w,l,num,accent,informational=False):
   y=444-i*176; rounded(c,40,y,532,164,[LAV,MINT,PALE][i],[PUR,TEAL,GOLD][i],15,sw=1.3)
   c.setFillColor([PUR,TEAL,GOLD][i]); c.circle(75,y+125,21,fill=1,stroke=0); c.setFillColor(white); c.setFont('Helvetica-Bold',14); c.drawCentredString(75,y+120,n)
   para(c,q,112,y+143,420,'body',40)
-  response_box(c,57,y+8,497,98,'DRAW, PLACE A PICTURE, OR WRITE YOUR ANSWER')
+  response_box(c,57,y+4,497,86,'DRAW, PLACE A PICTURE, OR WRITE YOUR ANSWER')
  footer(c,num,w)
 
 def name_date(c,y):
